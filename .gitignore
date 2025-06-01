@@ -1,0 +1,23 @@
+# ===== Build outputs =====
+target/
+
+# ===== Compiled files =====
+*.class
+
+# ===== Logs and temp =====
+*.log
+*.tmp
+hs_err_pid*
+
+# ===== IntelliJ IDEA =====
+.idea/
+*.iml
+out/
+
+# ===== Dependency caches =====
+.mvn/
+
+# ignore evrything in this dir except .tex and .pdf
+specyfikacja_latex/*
+!specyfikacja_latex/*.pdf
+!specyfikacja_latex/*.tex

@@ -1,0 +1,530 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{longtable}
+\geometry{margin=2.5cm}
+
+\title{Specyfikacja Projektu Zaliczenowego (Programowanie w Języku Java)}
+\author{Radosław Ciepał \and Patryk Kowalczyk}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{1. Tytuł Projektu}
+
+\vspace{0.5 cm}
+ \noindent
+\textbf{Chatterly}
+
+\section*{2. Opis i Cele Projektu}
+
+\vspace{0.5 cm}
+ \noindent
+
+\textit{ Projekt ma na celu stworzenie aplikacji desktopowej, która umożliwia użytkownikom szyfrowaną komunikację. Główne cele projektu:}
+
+\begin{itemize}
+    \item Bezpieczna rejestracja i logowanie użytkowników.
+    \item Tworzenie, wysyłanie i odbieranie wiadomości tekstowych w czasie rzeczywistym
+    \item Wyświetlanie listy kontaktów / znajomych
+    \item Powiadomienia o przychodzących wiadomościach
+    \item Wyświetlanie statusu online/offline
+    \item Obsługa wylogowania
+\end{itemize}
+
+\section*{3. Wymagania Funkcjonalne}
+
+\vspace{0.5 cm}
+ \noindent
+
+\begin{itemize}
+    \item Rejestracja, logowanie, zarządzanie sesją.
+    \item Szyfrowanie wiadomości „end-to-end”
+    \item Przechowywanie historii czatu w relacyjnej bazie danych na serwerze (zaszyfrowanej)
+    \item Przechowywanie tablicy urzytkowników w relacyjnej bazie danych na serwerze
+    \item Cache kilku ostatnich wiadomości oraz kontaktów w lokalnej relacyjnej bazie danych (zaszyfrowanej)
+    \item Zarządzanie kluczami kryptograficznymi (generowanie par kluczy asymetyrcznych oraz klucza symetrycznego, wymiana publicznych kluczy)
+    \item Bezpieczne zamykania sesji po upłynięciu timeout
+\end{itemize}
+
+\section*{4. Wymagania Niefunkcjonalne}
+
+\vspace{0.5 cm}
+ \noindent
+\begin{itemize}
+    \item \textbf{Wydajność:} Czas przesyłu danych poniżej sekundy.
+    \item \textbf{Skalowalność:}
+        \begin{itemize}
+        \item Obsługiwanie wielu wątków na serwerze - obsługiwane domyślnie przez Ecplipse Tyrus
+        \end{itemize}
+    \item \textbf{Bezpieczeństwo:}
+        \begin{itemize}
+            \item W serwerowej bazie danych znajdują sie hashowane hasła (bcrypt)
+            \item Szyfrowanie komunikacji TCP serwer-klient (rejestracja, logowanie, wymiana endpointów API) (TSL/SSL)
+            \begin{itemize}
+                \item Uzgodnienie wersji protokołu (TLS 1.2/1.3),
+                \item Wymiana kluczy asymetrycznych (certyfikat + klucz prywatny serwera),
+                \item Uzgodnienie klucza sesji (symetrycznego),
+                \item Szyfrowanie ruchu symetrycznym algorytmem (np. AES-GCM).
+            \end{itemize}
+            \item Uwierzytelnić serwer za pomocą TLS/SSL certyfikat X.509 dla domeny serwera (Let’s Encrypt)(KeyStore)
+            \item Szyfrowanie „end-to-end” wiadomości (hybrydowy schemat kryptograficzny) (KeyStore)
+            \item Utrzymywanie Ping/Pong(Heartbeat) między klientem a serverem (WebSocket idle timeout)
+            \item Weryfikacja klienta i kontrola czy ma uprawnienia do przesyłu (JWT)
+        \end{itemize}
+    \item \textbf{Użyteczność:} Interfejs zgodny z odpowiednikiem z web WCAG (AA).
+\end{itemize}
+
+\section*{5. Architektura Systemu}
+\textit{Poniżej opisano ogólną architekturę systemu czatu, jego główne komponenty oraz zależności między nimi.}
+\vspace{0.5 cm}
+ \noindent
+\textbf{Typ architektury: Klient-Serwer (MVC / warstwowa).}
+
+\textbf{System składa się z dwóch głównych części:}
+\textbf{klienta desktopowego} (JavaFX) oraz
+\textbf{serwera} (Java + REST + WS). Komponenty te komunikują się ze sobą za pośrednictwem
+\textbf{TLS/SSL}, a autoryzacja klienta odbywa się przy pomocy
+\textbf{JWT}. Ponadto do wymiany wiadomości w czasie rzeczywistym wykorzystywany jest
+\textbf{WebSocket}. Ecplipse Tyrus implementuje Java API for WebSocket. Działa na serwerze i zarządza handshakami, sesjami WebSocket,
+cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpointami.
+
+
+\subsection*{REST (HTTPS)}
+\begin{itemize}
+    \item Służy do operacji CRUD i pojedynczych wywołań „na żądanie”:
+    \begin{itemize}
+        \item Rejestracja (POST /api/register)
+        \item Logowanie (POST /api/login) → zwraca JWT
+        \item Odświeżanie tokena (POST /api/refreshToken)
+        \item Pobranie listy znajomych (GET /api/users/friends)
+        \item Pobranie historii czatu (GET /api/messages?withUser={id} limit={N})
+        \item Pobranie/aktualizacja klucza publicznego (GET/PUT /api/users/{id}/publicKey)
+    \end{itemize}
+    \item Każde żądanie REST zawiera w nagłówku Authorization: Bearer <JWT>, który został uzyskany po zalogowaniu.
+    \item Połączenia REST są bezstanowe (każde żądanie musi mieć ważny JWT) i szyfrowane TLS-em (HTTPS).
+\end{itemize}
+
+\subsection*{WebSocket (WSS)}
+\begin{itemize}
+    \item Służy wyłącznie do wymiany wiadomości w czasie rzeczywistym (push/pull).
+    \item To „trwałe” połączenie TCP nad TLS:
+    \begin{itemize}
+        \item Przy handshake (otwieraniu WSS) klient dołącza ten sam JWT w nagłówku Authorization.
+        \item Serwer sprawdza podpis i datę wygaśnięcia tokena. Gdy JWT jest poprawny, sesja WS jest akceptowana.
+    \end{itemize}
+    \item Po otwarciu WebSocket klient wysyła/odbiera kolejne zaszyfrowane (E2E) pakiety JSON bez potrzeby ponownego dołączania JWT w każdej wiadomości.
+\end{itemize}
+
+\subsection*{Logika przepływu:}
+\begin{enumerate}
+    \item Klient wysyła REST-owe POST /api/login → dostaje JWT.
+    \item Klient (WSS) otwiera wss://server/chat z nagłówkiem Authorization: Bearer <JWT>.
+    \item Serwer w handshake weryfikuje JWT i przyznaje sesję WS.
+    \item Od teraz klient wysyła szyfrowane E2E-wiadomości przez WebSocket, a serwer tylko je przekazuje (plus buforuje offline).
+    \item Gdy JWT wygaśnie, przy próbie ponownego connectToServer() WebSocket handshake się nie uda → klient musi przez REST odświeżyć token, a potem ponowić WSS.
+\end{enumerate}
+
+\subsection*{Schemat:}
+\begin{itemize}
+    \item Frontend: JavaFX + CSS
+    \item Backend: Java + Tyrus
+    \item Server: Oracle Cloud Free Tier
+    \item Baza danych: PostgreSQL, SQLite, JDBC (Java Database Connectivity)
+    \item WebSocket: WebSocket
+    \item Autoryzacja: JWT, certyfikat X.509
+    \item Hashowanie: bcrypt, SQLCipher
+    \item Przechowywanie kluczy i certyfikatów: KeyStore
+    \item Generowanie TLS/SSL certyfikat X.509: Let’s Encrypt
+\end{itemize}
+
+
+
+\section*{6. Zastosowane Algorytmy}
+
+\vspace{0.5 cm}
+ \noindent
+\begin{itemize}
+    \item \textbf{Algorytmy uwierzytelniania:}
+    \begin{itemize}
+        \item \emph{JWT:}
+        \begin{itemize}
+            \item   Algorytm sygnatury: HMAC-SHA256 (HS256) lub RSA-SHA256 (RS256) – w zależności od tego, czy używasz klucza symetrycznego (sekret) czy klucza prywatnego/publicznego.
+            \item   Claims: \texttt{{ sub: userId, iat: issuedAt, exp: expiresAt, roles: [] }}.
+            \item   Weryfikacja podpisu oraz pola \texttt{exp} przed przyznaniem dostępu.
+        \end{itemize}
+        \item \emph{Hashowanie haseł:}
+        \begin{itemize}
+            \item bcrypt z solą (np. 12 rund generowania soli, parametr \texttt{cost=12}).
+            \item Przechowywanie w bazie tylko 60-znakowego ciągu zwierajacego sol i hash.
+            \item Weryfikacja \texttt{BCrypt.checkpw(plainPassword, storedHash)}.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Zarządzanie sesją:}
+    \begin{itemize}
+        \item \emph{Access Token (JWT):}
+        \begin{itemize}
+            \item   Czas życia (TTL) typowo 15–60 minut (\texttt{exp = now + TTL\_minutes}).
+            \item   Po wygaśnięciu odrzucany w każdej weryfikacji (\texttt{if now > exp → 401}).
+        \end{itemize}
+        \item \emph{Refresh Token:}
+        \begin{itemize}
+            \item   Dłuższy TTL (np. 7 dni), zapisany w bazie z flagą \texttt{revoked}.
+            \item   Endpoint \texttt{POST /api/refreshToken}: weryfikacja podpisu i obecności w bazie → wydanie nowego Access Tokena (i opcjonalnie nowego Refresh Tokena, unieważnienie starego).
+        \end{itemize}
+        \item \emph{Middleware / Interceptor:}
+        \begin{itemize}
+            \item   Każde wywołanie REST i handshake WebSocket weryfikuje JWT; jeśli \texttt{exp} przekroczone → próba odświeżenia (jeśli nagłówek \texttt{Refresh-Token} jest prawidłowy), w przeciwnym razie zwraca 401 i wymaga ponownego logowania.
+            \item   W WebSocket: przy otrzymaniu błędu „token expired” klient automatycznie próbuje odświeżyć token i wznowić połączenie WSS.
+        \end{itemize}
+    \end{itemize}
+    \item \textbf{Szyfrowanie „end-to-end” wiadomości:}
+    \begin{itemize}
+        \item \emph{Asymetryczne (klucze długoterminowe):}
+        \begin{itemize}
+            \item   RSA 2048-bit z OAEP (RSA/ECB/OAEPWithSHA-256AndMGF1Padding)
+            \begin{itemize}
+                \item \textbf{RSA} Algorytm szyfrowania asymetrycznego, w którym każdy użytkownik ma parę kluczy.
+                \item \textbf{ECB (Electronic Codebook)} etykieta trybu szyfrowania dla bloków danych
+                \item \textbf{OAEP (Optimal Asymmetric Encryption Padding)} wypełniania klucz do stałej długości
+                \item \textbf{SHA (Secure Hash Algorithm)} konkretny algorytm skrótu używany wewnątrz OAEP do generowania maski i mieszanki bajtów.
+            \end{itemize}
+            \item  \textbf{lub}  ECC na krzywej secp256r1 (ECDH + AES-GCM) – generacja kluczy za pomocą \texttt{KeyPairGenerator.getInstance("EC")}, krzywa \texttt{SECP256R1}.
+            \begin{itemize}
+                \item \textbf{ECC (Elliptic Curve Cryptography)} Szyfrowanie asymetryczne oparte na własnościach krzywych eliptycznych
+                \item \textbf{Krzywa secp256r1} Jeden z powszechnie stosowanych parametrów ECC
+                \item \textbf{ECDH (Elliptic Curve Diffie–Hellman)} Protokół wymiany klucza, który korzysta z ECC
+                \item \textbf{AES-GCM (Advanced Encryption Standard – Galois/Counter Mode)} Algorytm symetryczny łączący szyfrowanie blokowe AES z trybem GCM
+            \end{itemize}
+            \item   Klucz publiczny A i B przechowywany w bazie; klucz prywatny użytkownika zaszyfrowany hasłem w lokalnym keystore.
+        \end{itemize}
+        \item \emph{Symetryczne (klucze sesyjne):}
+        \begin{itemize}
+            \item   AES-GCM 256-bit (\texttt{Cipher.getInstance("AES/GCM/NoPadding")}), generacja IV 12 bajtów losowych.
+            \begin{itemize}
+                \item \textbf{AES (Advanced Encryption Standard)} symetryczny algorytm szyfrowania blokowego
+                \item \textbf{Szyfrowanie (Counter Mode):} blok danych jest liczony sekwencyjnie (nonce + licznik), zaszyfrowany AES, a wynik XORowany z tekstem jawnym.
+                \item \textbf{Autentykacja (Galois Field):}  generuje tag (128-bitowy) HMAC-podobny, obliczony nad całym szyfrogramem i opcjonalnymi danymi dodatkowo uwierzytelnianymi (AAD(Additional Authenticated Data))
+            \end{itemize}
+            \item   Przy każdej wiadomości:
+            \begin{enumerate}
+                \item   \texttt{SecretKey sessionKey = KeyGenerator.getInstance("AES").init(256).generateKey();}
+                \item   \texttt{Cipher aes = Cipher.getInstance("AES/GCM/NoPadding");}
+                \item   \texttt{GCMParameterSpec spec = new GCMParameterSpec(128, iv);}
+                \item   \texttt{ciphertext = aes.doFinal(plaintext);}
+            \end{enumerate}
+        \end{itemize}
+        \item \emph{Hybrydowy schemat pakowania:}
+        \begin{itemize}
+            \item   \texttt{encryptedKey = RSA\_OAEP(publicKeyRecipient, sessionKey)} lub \texttt{ECDH→derive sharedKey→AES-kdf→encryptedKey}.
+            \item   JSON-payload:
+            \begin{verbatim}
+        {
+          "to":"userB",
+          "encryptedKey":"Base64(...)",
+          "iv":"Base64(...)",
+          "ciphertext":"Base64(...)",
+          "timestamp":163XXXYYYY
+        }
+            \end{verbatim}
+            \item   Odbiorca:
+            \begin{enumerate}
+                \item   Odzyskuje \texttt{sessionKey = RSA\_OAEP\_decrypt(privateKeyB, Base64(encryptedKey))}.
+                \item   Odszyfrowuje \texttt{plaintext = AES\_GCM\_decrypt(sessionKey, iv, ciphertext)}.
+            \end{enumerate}
+        \end{itemize}
+        \item \emph{Podpisywanie (opcjonalnie) dla integralności dodatkowej:}
+        \begin{itemize}
+            \item \textbf{HMAC (Hash-based Message Authentication Code)} mechanizm, który pozwala jednocześnie zweryfikować integralność danych oraz autentyczność ich nadawcy
+            \item HMAC-SHA256 nad całym JSON-em lub nad \texttt{ciphertext + iv} z kluczem pochodnym od shared secret (w ECDH).
+            \item Weryfikacja HMAC przed odszyfrowaniem w celu wykrycia manipulacji.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\section*{Tablice baz danych:}
+
+\textbf{users} (przechowuje dane o kontach użytkowników)
+\begin{itemize}
+    \item id SERIAL PRIMARY KEY
+    \item username VARCHAR(50) UNIQUE NOT NULL
+    \item passwordHash VARCHAR(60) NOT NULL  – bcrypt-hash
+    \item publicKey TEXT NOT NULL  – klucz publiczny RSA/ECC w formacie Base64
+    \item createdAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    \item updatedAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+\end{itemize}
+
+\textbf{friends} (lista relacji „znajomości” między użytkownikami)
+\begin{itemize}
+    \item id SERIAL PRIMARY KEY
+    \item userId INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item friendId INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item status VARCHAR(10) NOT NULL  – np. pending, accepted, blocked
+    \item createdAt TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    \item UNIKALNY INDEX (userId, friendId)
+\end{itemize}
+
+\textbf{messages} (zapis wszystkich wysłanych paczek – także tych już dostarczonych)
+\begin{itemize}
+    \item id BIGSERIAL PRIMARY KEY
+    \item fromUser INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item toUser INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item iv BYTEA NOT NULL  – wektor inicjalizacyjny AES-GCM (12 B)
+    \item encryptedKey BYTEA NOT NULL  – klucz AES zaszyfrowany RSA/OAEP (lub ECDH→KDF)
+    \item ciphertext BYTEA NOT NULL  – zaszyfrowana treść wiadomości (AES-GCM)
+    \item timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    \item delivered BOOLEAN NOT NULL DEFAULT FALSE  – czy zostało „wysłane” do odbiorcy
+\end{itemize}
+
+\textbf{pendingMessages} (dla wiadomości, które odbiorca był offline)
+\begin{itemize}
+    \item id BIGSERIAL PRIMARY KEY
+    \item fromUser INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item toUser INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item iv BYTEA NOT NULL
+    \item encryptedKey BYTEA NOT NULL
+    \item ciphertext BYTEA NOT NULL
+    \item timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+\end{itemize}
+
+\textbf{refreshTokens} (przechowuje refresh tokeny do odświeżania JWT)
+\begin{itemize}
+    \item id SERIAL PRIMARY KEY
+    \item token VARCHAR(255) UNIQUE NOT NULL  – przechowujemy cały token (np. Base64 JWT)
+    \item userId INTEGER NOT NULL  — REFERENCES users(id) ON DELETE CASCADE
+    \item expiresAt TIMESTAMP WITH TIME ZONE NOT NULL
+    \item revoked BOOLEAN NOT NULL DEFAULT FALSE
+\end{itemize}
+
+\textbf{userStatus} (szybki podgląd online/offline)
+\begin{itemize}
+    \item userId INTEGER PRIMARY KEY — REFERENCES users(id) ON DELETE CASCADE
+    \item isOnline BOOLEAN NOT NULL DEFAULT FALSE
+    \item lastSeen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+\end{itemize}
+
+
+
+\section*{7. Struktura Klas}
+\textit{Opisuje strukturę klas, ich odpowiedzialności oraz podział logiczny na warstwy w aplikacji.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\vspace{0.5 cm}
+ \noindent
+\subsection*{Model}
+\begin{itemize}
+    \item \texttt{User} – identyfikator, imię, email, hasło, rola.
+    \item \texttt{Task} – id, tytuł, opis, termin, status, przypisany użytkownik.
+    \item \texttt{Tag} – id, nazwa, kolor, powiązanie z zadaniami.
+\end{itemize}
+
+\subsection*{Serwisy}
+\begin{itemize}
+    \item \texttt{UserService} – rejestracja, logowanie, zarządzanie rolami.
+    \item \texttt{TaskService} – logika zarządzania zadaniami.
+    \item \texttt{NotificationService} – generowanie powiadomień.
+    \item \texttt{AuthService} – JWT, walidacja, bezpieczeństwo.
+\end{itemize}
+
+\subsection*{Kontrolery}
+\begin{itemize}
+    \item \texttt{UserController} – REST API użytkownika.
+    \item \texttt{TaskController} – REST API zadań.
+    \item \texttt{AuthController} – logowanie i uwierzytelnianie.
+\end{itemize}
+
+\subsection*{Dodatkowe komponenty}
+\begin{itemize}
+    \item \texttt{WebSocketHandler} – aktualizacje w czasie rzeczywistym.
+    \item \texttt{DTO} – obiekty wymiany danych (Data Transfer Object).
+    \item \texttt{Repository} – interfejsy do bazy danych (np. JPA/Hibernate).
+\end{itemize}
+
+\section*{8. Wykorzystane Technologie i Biblioteki}
+\textit{Opis technologii oraz narzędzi użytych w projekcie.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\vspace{0.5 cm}
+ \noindent
+\subsection*{Frontend:}
+React, React Query
+
+\subsection*{Backend:}
+Java, WebSocket
+
+\subsection*{Baza Danych:}
+PostgreSQL lub MongoDB
+
+\subsection*{DevOps:}
+Docker, GitHub Actions
+
+\section*{9. API i Modele Danych}
+\textit{Przykładowe punkty końcowe API oraz struktura danych wymienianych między systemami.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\subsection*{Przykładowe Endpointy:}
+\begin{verbatim}
+GET /api/tasks
+POST /api/tasks
+PUT /api/tasks/:id
+DELETE /api/tasks/:id
+\end{verbatim}
+
+\subsection*{Model Danych:}
+\begin{verbatim}
+{
+  "id": "uuid",
+  "tytul": "string",
+  "opis": "string",
+  "termin": "timestamp",
+  "priorytet": "enum(niski, sredni, wysoki)",
+  "etykiety": ["string"],
+  "zrealizowane": "boolean",
+  "przypisanyDo": "user_id"
+}
+\end{verbatim}
+
+\section*{10. Interfejs Użytkownika}
+\textit{Opis interfejsu graficznego aplikacji, jego struktury, logiki działania oraz dostępnych ekranów.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\subsection*{Główne widoki:}
+\begin{itemize}
+    \item \textbf{Ekran logowania i rejestracji:} Formularze z walidacją danych, możliwość odzyskania hasła.
+    \item \textbf{Pulpit użytkownika:} Przegląd aktualnych zadań, kalendarz, szybki dostęp do przypisanych zadań.
+    \item \textbf{Zarządzanie zadaniami:} Widok listy zadań z możliwością sortowania, filtrowania, edytowania i usuwania.
+    \item \textbf{Tworzenie i edycja zadań:} Formularz z polami na tytuł, opis, etykiety, termin, przypisanie użytkownika.
+    \item \textbf{Powiadomienia:} Wyskakujące alerty o nadchodzących terminach i zmianach w zadaniach (real-time).
+    \item \textbf{Panel administracyjny:} Zarządzanie użytkownikami, rolami, dostępem.
+\end{itemize}
+
+\subsection*{Elementy UX/UI:}
+\begin{itemize}
+    \item Responsywność — dostosowanie do urządzeń mobilnych.
+    \item Konsekwentna kolorystyka, nawigacja boczna lub górna.
+    \item Łatwość obsługi — maksymalnie 3 kliknięcia do najważniejszych funkcji.
+    \item Tryb ciemny/jasny — dostępny z poziomu ustawień.
+\end{itemize}
+
+\subsection*{Technologie UI:}
+React, TailwindCSS, React Router, Headless UI, ikony Lucide.
+
+\section*{11. Etapy Realizacji / Harmonogram}
+\textit{Plan wdrożenia projektu z podziałem na fazy i szacowanym czasem realizacji.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\begin{longtable}{|c|p{8cm}|c|}
+\hline
+\textbf{Faza} & \textbf{Opis} & \textbf{Czas} \\
+\hline
+Planowanie & Określenie wymagań, wybór technologii & 1 tydzień \\
+\hline
+Backend & Budowa API, modele danych & 2 tygodnie \\
+\hline
+Frontend & Interfejs, integracja z API & 2 tygodnie \\
+\hline
+Testy i realtime & WebSocket, testy jednostkowe i integracyjne & 1 tydzień \\
+\hline
+Wdrożenie & Konfiguracja Docker, CI/CD, serwer & 1 tydzień \\
+\hline
+\end{longtable}
+
+\section*{12. Testowanie}
+\textit{Sposoby testowania aplikacji, typy testów oraz używane narzędzia.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\begin{itemize}
+    \item Testy jednostkowe (logika backendu i frontend).
+    \item Testy integracyjne (API).
+    \item Testy E2E – np. Cypress, Selenium.
+    \item Testy obciążeniowe – np. JMeter, k6.
+\end{itemize}
+
+\section*{13. Ryzyka i Środki Zaradcze}
+\textit{Identyfikacja potencjalnych zagrożeń projektowych i strategii ich ograniczenia.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\begin{longtable}{|p{5cm}|p{3cm}|p{6cm}|}
+\hline
+\textbf{Ryzyko} & \textbf{Wpływ} & \textbf{Zarządzanie} \\
+\hline
+Nadmierna liczba funkcji & Wysoki & Zablokowanie wymagań po planowaniu \\
+\hline
+Błędy bezpieczeństwa & Wysoki & Audyty kodu, sprawdzone biblioteki \\
+\hline
+Opóźnienia & Średni & Praca iteracyjna (Agile) \\
+\hline
+\end{longtable}
+
+\section*{14. Kryteria Sukcesu}
+\textit{Opisz po czym poznać, że projekt zakończył się sukcesem.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\vspace{0.5 cm}
+ \noindent
+\begin{itemize}
+    \item Wszystkie funkcje działają zgodnie ze specyfikacją.
+    \item Pokrycie testami > 80\%.
+    \item Brak błędów krytycznych na produkcji.
+    \item Pozytywna opinia użytkowników (średnia ocena \textgreater 4.5).
+\end{itemize}
+
+\section*{15. Szacunkowe Nakłady Pracy (Workload Estimation)}
+\textit{Osobne oszacowanie czasu pracy dla poszczególnych modułów i funkcji.}
+
+\vspace{0.5 cm}
+ \noindent
+\underline{Przykład:} 
+\vspace{0.5 cm}
+ \noindent
+Całkowity szacowany czas pracy: \textbf{160 godzin roboczych}.
+
+\begin{longtable}{|p{6cm}|p{4cm}|p{3cm}|}
+\hline
+\textbf{Moduł / Zadanie} & \textbf{Opis} & \textbf{Szac. czas (h)} \\
+\hline
+Analiza i projektowanie & Wymagania, mockupy, wybór technologii & 12 \\
+\hline
+Backend API (CRUD, JWT) & Modele danych, logika biznesowa & 35 \\
+\hline
+Frontend UI (React) & Komponenty, interakcje z API & 30 \\
+\hline
+Uwierzytelnianie i sesje & Login, rejestracja, autoryzacja & 15 \\
+\hline
+WebSocket – realtime & Notyfikacje i live updates & 10 \\
+\hline
+Testy (unit + E2E) & Pokrycie testami kluczowych ścieżek & 15 \\
+\hline
+Docker / CI / Deployment & Konfiguracja środowiska, produkcja & 10 \\
+\hline
+Dokumentacja techniczna & README, API schema, komentarze & 8 \\
+\hline
+Bufor czasowy / błędy & Debugowanie, nieprzewidziane problemy & 25 \\
+\hline
+\end{longtable}
+
+\end{document}
+
