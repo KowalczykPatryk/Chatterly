@@ -77,7 +77,7 @@
             \item Uwierzytelnić serwer za pomocą TLS/SSL certyfikat X.509 dla domeny serwera (Let’s Encrypt)(KeyStore)
             \item Szyfrowanie „end-to-end” wiadomości (hybrydowy schemat kryptograficzny) (KeyStore)
             \item Utrzymywanie Ping/Pong(Heartbeat) między klientem a serverem (WebSocket idle timeout)
-            \item Weryfikacja klienta i kontrola czy ma uprawnienia do przesyłu (JWT)
+            \item Weryfikacja klienta i kontrola czy ma uprawnienia do przesyłu (JWT (JSON Web Token))
         \end{itemize}
     \item \textbf{Użyteczność:} Interfejs zgodny z odpowiednikiem z web WCAG (AA).
 \end{itemize}
@@ -94,7 +94,7 @@
 \textbf{TLS/SSL}, a autoryzacja klienta odbywa się przy pomocy
 \textbf{JWT}. Ponadto do wymiany wiadomości w czasie rzeczywistym wykorzystywany jest
 \textbf{WebSocket}. Ecplipse Tyrus implementuje Java API for WebSocket. Działa na serwerze i zarządza handshakami, sesjami WebSocket,
-cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpointami.
+cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpointami. Jersey obsługuje REST API endpoints implementując JAX-RS.
 
 
 \subsection*{REST (HTTPS)}
@@ -135,8 +135,8 @@ cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpoint
 \subsection*{Schemat:}
 \begin{itemize}
     \item Frontend: JavaFX + CSS
-    \item Backend: Java + Tyrus
-    \item Server: Oracle Cloud Free Tier
+    \item Backend: Java + Tyrus + Jersey + Grizzly
+    \item Server: Render Hobby Plan
     \item Baza danych: PostgreSQL, SQLite, JDBC (Java Database Connectivity)
     \item WebSocket: WebSocket
     \item Autoryzacja: JWT, certyfikat X.509
@@ -454,7 +454,7 @@ Wdrożenie & Konfiguracja Docker, CI/CD, serwer & 1 tydzień \\
 \underline{Przykład:} 
 \begin{itemize}
     \item Testy jednostkowe (logika backendu i frontend).
-    \item Testy integracyjne (API).
+    \item Testy integracyjne (API) JerseyTest, JUnit.
     \item Testy E2E – np. Cypress, Selenium.
     \item Testy obciążeniowe – np. JMeter, k6.
 \end{itemize}

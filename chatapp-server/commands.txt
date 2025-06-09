@@ -1,0 +1,7 @@
+psql "$DATABASE_URL" -f db/schema.sql && java -jar target/my-app.jar
+psql -U youruser -d yourdb -f schema.sql
+
+
+envs:
+PORT=?
+JWT_SECRET=?
