@@ -1,4 +1,4 @@
-package src.main.java.chatapp.client.dto;
+package chatapp.client.dto;
 
 public class LoginRequest {
     private String username;

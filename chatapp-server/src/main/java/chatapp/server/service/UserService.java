@@ -4,6 +4,7 @@ import chatapp.server.model.User;
 import chatapp.server.auth.JwtUtil;
 import chatapp.server.dao.RefreshTokenDao;
 import chatapp.server.dao.UserDao;
+import chatapp.server.dao.UserStatusDao;
 import chatapp.server.dto.Tokens;
 
 import chatapp.server.exceptions.TokenPersistenceException;
@@ -15,6 +16,7 @@ public class UserService {
     private final UserDao userDao = new UserDao();
     private final JwtUtil jwtUtil = new JwtUtil();
     private final RefreshTokenDao refreshDao = new RefreshTokenDao();
+    private final UserStatusDao userStatusDao = new UserStatusDao();
     /**
      * Próbuje zarejestrować nowego użytkownika.
      * Zwraca true jeśli użytkownik nie istniał, false jeśli login już zajęty.
@@ -38,7 +40,6 @@ public class UserService {
      */
     public Tokens login(String username, String passwordHash) {
         try {
-            UserDao userDao = new UserDao();
             if (!userDao.validateCredentials(username, passwordHash)) {
                 return null;
             }
@@ -46,6 +47,7 @@ public class UserService {
             String refreshToken = jwtUtil.generateRefreshToken(username);
 
             refreshDao.saveToken(refreshToken, username, jwtUtil.getRefreshExpiry());
+            userStatusDao.setUserOnline(userDao.getId(username));
             return new Tokens(accessToken, refreshToken);
         } catch( SQLException e)
         {
@@ -106,5 +108,41 @@ public class UserService {
         }
 
         return new Tokens(newAccess, newRefresh);
+    }
+
+    /**
+     * Logout logic.
+     * @throws TokenValidationException if token is invalid or revoked
+     * @throws TokenPersistenceException if DB errors occur
+     */
+    public void logout(String oldRefreshToken)
+            throws TokenValidationException, TokenPersistenceException {
+
+        if (oldRefreshToken == null || oldRefreshToken.isBlank()) {
+            throw new TokenValidationException("missing_token",
+                    "Refresh token was not provided.");
+        }
+        if(jwtUtil.isTokenUpToDate(oldRefreshToken))
+        {
+            throw new TokenValidationException("invalid_token",
+                    "Refresh token is illformed or expired.");
+        }
+        try {
+            if (!refreshDao.isValid(oldRefreshToken)) {
+                throw new TokenValidationException("revoked_token",
+                        "Refresh token has been revoked.");
+            }
+        } catch (SQLException e) {
+            throw new TokenPersistenceException("db_error",
+                    "Unable to validate refresh token in database.", e);
+        }
+        String username = jwtUtil.getUsernameFromToken(oldRefreshToken);
+        try {
+            refreshDao.revoke(oldRefreshToken);
+            userStatusDao.setUserOffline(userDao.getId(username));
+        } catch (SQLException e) {
+            throw new TokenPersistenceException("db_error",
+                    "Failed to persist new refresh token.", e);
+        }
     }
 }

@@ -91,7 +91,7 @@ public class UserClient {
         UserClient userClient = new UserClient();
 
         // Przykład rejestracji
-        User newUser = new User("john_doe", "password123", "john@example.com");
+        User newUser = new User("john_doe", "password123");
         boolean registered = userClient.register(newUser);
         System.out.println("Registered: " + registered);
 

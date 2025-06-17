@@ -7,6 +7,9 @@ import chatapp.server.model.User;
 import chatapp.server.config.DependencyBinder;
 import chatapp.server.service.UserService;
 import chatapp.server.auth.JwtUtil;
+import chatapp.server.dto.RefreshRequest;
+import chatapp.server.exceptions.TokenValidationException;
+import chatapp.server.exceptions.TokenPersistenceException;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -132,6 +135,39 @@ public class UserControllerTest extends JerseyTest {
 
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), resp.getStatus(),
                 "Expected 401 Unauthorized on invalid credentials");
+    }
+
+    @Test
+    @DisplayName("Successfuly retrieved refreshToken.")
+    public void testRefreshTokenSuccessful() throws TokenValidationException, TokenPersistenceException{
+        when(userService.refreshTokens(any(String.class))).thenReturn(new Tokens("accessToken", "refreshToken"));
+
+        // alternatively we could use other stubbing method
+        //     doReturn(new Tokens("accessToken", "refreshToken"))
+        //        .when(userService)
+        //        .refreshTokens(any(String.class));
+
+        RefreshRequest req = new RefreshRequest();
+        req.setRefreshToken("refreshToken");
+
+        Response resp = target("users")
+                .path("refreshToken")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(req, MediaType.APPLICATION_JSON));
+        assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
+    }
+    @Test
+    @DisplayName("Successfuly logout.")
+    public void testLogout() throws TokenValidationException, TokenPersistenceException{
+
+        RefreshRequest req = new RefreshRequest();
+        req.setRefreshToken("refreshToken");
+
+        Response resp = target("users")
+                .path("logout")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(req, MediaType.APPLICATION_JSON));
+        assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
     }
 
 }

@@ -1,4 +1,4 @@
-package src.main.java.chatapp.client.model;
+package chatapp.client.model;
 
 public class User {
     private String username;

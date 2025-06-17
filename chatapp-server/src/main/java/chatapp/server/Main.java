@@ -17,7 +17,7 @@ import io.jsonwebtoken.security.Keys;
 public class Main {
     private static final String port = System.getenv("PORT");
     private static final int p = (port != null) ? Integer.parseInt(port) : 8080;
-    private static final URI BASE_URI = URI.create("http://0.0.0.0:" + p + "/api/");
+    private static final URI BASE_URI = URI.create("http://localhost:" + p + "/api/");
 
     public static void main(String[] args) throws IOException {
         String secretBase64 = System.getenv("JWT_SECRET");

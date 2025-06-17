@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="chatapp.client.controller.RegisterController"
+      prefHeight="400.0" prefWidth="800.0"
+      spacing="20.0"
+      alignment="CENTER">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+    <TextField fx:id="loginTextField" promptText="Login" prefWidth="200.0"/>
+    <TextField fx:id="usernameTextField" promptText="Nazwa użytkownika" prefWidth="200.0"/>
+    <TextField fx:id="passwordTextField" promptText="Hasło" prefWidth="200.0"/>
+
+
+    <HBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml">
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        </padding>
+
+        <Button text="Utwórz konto!" onAction="#createAccount"/>
+
+    </HBox>
+
+</VBox>

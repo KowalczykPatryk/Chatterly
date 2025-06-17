@@ -36,7 +36,7 @@ public class UserController {
     /**
      * Endpoint rejestracji nowego użytkownika.
      * POST /api/users/register
-     * Body: { "username": "...", "password": "..." }
+     * Body: { "username": "...", "password": "...", "publicKey": "..." }
      */
     @POST
     @Path("/register")
@@ -78,6 +78,7 @@ public class UserController {
     /**
      * Endpoint do aktualizacji accessToken oraz refreshToken jeśli accessToken wygasł.
      * POST /api/users/refreshToken
+     * Body: {"refreshToken": ...}
      * Zwraca obiekt, który zawiera accessToken oraz refreshToken (lub komunikat o błędzie)
      */
     @POST
@@ -99,6 +100,32 @@ public class UserController {
                     .entity(Map.of(
                             "error", e.getCode(),
                             "message", e.getMessage()))
+                    .build();
+        }
+    }
+
+    /**
+     * Endpoint wylogowania użytkownika.
+     * POST /api/users/logout
+     * Body: { "refreshToken": "..." }
+     */
+    @POST
+    @Path("/logout")
+    public Response logout(RefreshRequest req) {
+        try {
+            userService.logout(req.getRefreshToken());
+            return Response.ok(Map.of("message", "Logout successful.")).build();
+        } catch (TokenValidationException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of(
+                            "error", e.getCode(),
+                            "message", e.getMessage()))
+                    .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of(
+                            "error", "INTERNAL_ERROR",
+                            "message", "Failed to logout."))
                     .build();
         }
     }
