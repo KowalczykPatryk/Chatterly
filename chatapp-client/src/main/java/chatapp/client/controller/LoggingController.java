@@ -8,8 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import chatapp.client.model.User;
 
 import chatapp.client.HelloApplication;
 
@@ -18,12 +18,12 @@ import java.io.IOException;
 public class LoggingController {
     @FXML private TextField loginTextField;
     @FXML private PasswordField passwordTextField;
+    @FXML private Label infoLabel;
 
     private static final String BASE = "http://localhost:8081/api/users";
 
-    @FXML
-    protected void logIn(ActionEvent event) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/chatapp/client/views/hello-view.fxml"));
+    private void loadWindow(ActionEvent event, String window) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(fxmlLoader.load(), 400, 240);
         scene.getStylesheets().add("/chatapp/client/styles/style.css");
         Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
@@ -31,16 +31,23 @@ public class LoggingController {
         stage.setScene(scene);
         stage.show();
     }
+    @FXML
+    protected void logIn(ActionEvent event) throws IOException {
+        if(loginTextField.getText().isEmpty()) {
+            infoLabel.setText("Wpisz nazwę użytkownika!");
+            infoLabel.setTextFill(Color.ORANGE);
+        }
+        else if (passwordTextField.getText().isEmpty()) {
+            infoLabel.setText("Wpisz hasło!");
+            infoLabel.setTextFill(Color.ORANGE);
+        }
+        else {
+            loadWindow(event, "/chatapp/client/views/hello-view.fxml");
+        }
+    }
 
     @FXML
     protected void register(ActionEvent event) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/chatapp/client/views/register.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 400, 240);
-        scene.getStylesheets().add("/chatapp/client/styles/style.css");
-        Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
-        stage.setTitle("Chatterly");
-        stage.setScene(scene);
-        stage.show();
-
+        loadWindow(event, "/chatapp/client/views/register.fxml");
     }
 }
