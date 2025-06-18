@@ -9,8 +9,16 @@ public class HelloController {
     private TextField messageTextField;
     @FXML Label messagesLabel;
 
+    private boolean startOfConversation = true;
+
     @FXML
     protected void sendMessage() {
+        if(startOfConversation) {
+            messagesLabel.setText("");
+            startOfConversation = false;
+        }
+        String message = messageTextField.getText();
+        messagesLabel.setText(messagesLabel.getText() + "\n" + message);
         messageTextField.setText("");
     }
     @FXML
