@@ -17,6 +17,17 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>3.1.0</version>  <!-- match your server’s Jersey version -->
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
         <!-- JavaFX modules -->
         <dependency>
             <groupId>org.openjfx</groupId>

@@ -139,6 +139,16 @@
                     </includes>
                 </configuration>
             </plugin>
+
+            <!-- so we can run `mvn exec:java` -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>chatapp.server.Main</mainClass>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

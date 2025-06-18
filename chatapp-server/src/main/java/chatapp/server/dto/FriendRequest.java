@@ -7,11 +7,11 @@ public class FriendRequest{
     private String usernameFriend;
     private Instant createdAt;
 
-    public int getUsernameFrom() {return usernameFrom;}
-    public void setUsernameFrom(int usernameFrom) {this.usernameFrom = usernameFrom;}
+    public String getUsernameFrom() {return usernameFrom;}
+    public void setUsernameFrom(String usernameFrom) {this.usernameFrom = usernameFrom;}
 
-    public int getUsernameFriend() {return usernameFriend;}
-    public void setUsernameFriend(int usernameFriend) {this.usernameFriend = usernameFriend;}
+    public String getUsernameFriend() {return usernameFriend;}
+    public void setUsernameFriend(String usernameFriend) {this.usernameFriend = usernameFriend;}
 
     public Instant getCreatedAt() {return createdAt;}
     public void setCreatedAt(Instant createdAt) {this.createdAt = createdAt;}

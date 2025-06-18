@@ -4,10 +4,10 @@ import chatapp.client.model.User;
 import chatapp.client.dto.LoginRequest;
 import chatapp.client.dto.LoginResponse;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Klient Jersey do wywoływania endpointów UserController.
@@ -91,7 +91,7 @@ public class UserClient {
         UserClient userClient = new UserClient();
 
         // Przykład rejestracji
-        User newUser = new User("john_doe", "password123");
+        User newUser = new User("john_doe", "password123", "publicKey");
         boolean registered = userClient.register(newUser);
         System.out.println("Registered: " + registered);
 

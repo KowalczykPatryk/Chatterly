@@ -7,13 +7,20 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField;
 import javafx.stage.Stage;
+import chatapp.client.model.User;
 
 import chatapp.client.HelloApplication;
 
 import java.io.IOException;
 
 public class LoggingController {
+    @FXML private TextField loginTextField;
+    @FXML private PasswordField passwordTextField;
+
+    private static final String BASE = "http://localhost:8081/api/users";
+
     @FXML
     protected void logIn(ActionEvent event) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/chatapp/client/views/hello-view.fxml"));
@@ -34,5 +41,6 @@ public class LoggingController {
         stage.setTitle("Chatterly");
         stage.setScene(scene);
         stage.show();
+
     }
 }

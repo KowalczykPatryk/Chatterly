@@ -5,3 +5,8 @@ psql -U youruser -d yourdb -f schema.sql
 envs:
 PORT=?
 JWT_SECRET=?
+
+mvn exec:java
+mvn javafx:run
+mvn clean compile
+mvn clean test
