@@ -1,6 +1,6 @@
 package chatapp.server.config;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.glassfish.hk2.api.Factory;
 import chatapp.server.auth.JwtUtil;
 
