@@ -34,7 +34,7 @@ public class LoggingController {
 
     private void loadWindow(ActionEvent event, String window) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
-        Scene scene = new Scene(fxmlLoader.load(), 400, 240);
+        Scene scene = new Scene(fxmlLoader.load(), 400, 300);
         scene.getStylesheets().add("/chatapp/client/styles/style.css");
         Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Chatterly");
