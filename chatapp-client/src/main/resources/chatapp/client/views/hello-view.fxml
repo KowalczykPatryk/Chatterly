@@ -10,7 +10,7 @@
 
 <?import javafx.scene.control.ComboBox?>
 <VBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="chatapp.client.controller.HelloController" onKeyPressed="#sendMessage">
+      fx:controller="chatapp.client.controller.HelloController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>

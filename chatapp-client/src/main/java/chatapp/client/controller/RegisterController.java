@@ -27,7 +27,7 @@ public class RegisterController {
         }
         else {
             FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/chatapp/client/views/hello-view.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 400, 240);
+            Scene scene = new Scene(fxmlLoader.load(), 400, 300);
             scene.getStylesheets().add("/chatapp/client/styles/style.css");
             Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
             stage.setTitle("Chatterly");
