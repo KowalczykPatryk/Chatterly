@@ -12,6 +12,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import chatapp.client.HelloApplication;
+import chatapp.client.model.MyUsername;
+import chatapp.client.storage.SQLiteManager;
 
 import chatapp.client.http.HttpService;
 import chatapp.client.service.UserServiceClient;
@@ -21,6 +23,7 @@ import chatapp.client.model.ApiResponse;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class LoggingController {
     @FXML private TextField loginTextField;
@@ -57,7 +60,17 @@ public class LoggingController {
             LoginResponse logResp = resp.getBody();
             if (resp.getStatus() == Response.Status.OK.getStatusCode())
             {
-                loadWindow(event, "/chatapp/client/views/hello-view.fxml");
+                try {
+                    SQLiteManager manager = SQLiteManager.getInstance();
+                    manager.saveTokens(logResp.getAccessToken(), logResp.getRefreshToken());
+                    MyUsername.setMyUsername(loginTextField.getText());
+                    loadWindow(event, "/chatapp/client/views/hello-view.fxml");
+                }
+                catch(SQLException e)
+                {
+                    infoLabel.setText("Could not save tokens to the database.");
+                    infoLabel.setTextFill(Color.RED);
+                }
             }
             else if (resp.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
             {
