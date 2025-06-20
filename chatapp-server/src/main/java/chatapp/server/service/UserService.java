@@ -38,9 +38,9 @@ public class UserService {
      * Próbuje zalogować użytkownika: jeśli login i hasło poprawne,
      * zwraca wygenerowany token (lub null, jeśli nieprawidłowe dane).
      */
-    public Tokens login(String username, String passwordHash) {
+    public Tokens login(String username, String password) {
         try {
-            if (!userDao.validateCredentials(username, passwordHash)) {
+            if (!userDao.validateCredentials(username, password)) {
                 return null;
             }
             String accessToken = jwtUtil.generateAccessToken(username);

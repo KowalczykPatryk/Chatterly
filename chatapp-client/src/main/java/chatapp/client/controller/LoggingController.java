@@ -13,6 +13,13 @@ import javafx.stage.Stage;
 
 import chatapp.client.HelloApplication;
 
+import chatapp.client.http.HttpService;
+import chatapp.client.service.UserServiceClient;
+import chatapp.client.dto.LoginRequest;
+import chatapp.client.dto.LoginResponse;
+import chatapp.client.model.ApiResponse;
+import jakarta.ws.rs.core.Response;
+
 import java.io.IOException;
 
 public class LoggingController {
@@ -42,7 +49,21 @@ public class LoggingController {
             infoLabel.setTextFill(Color.ORANGE);
         }
         else {
-            loadWindow(event, "/chatapp/client/views/hello-view.fxml");
+            HttpService httpService = new HttpService();
+            String baseUrl = "http://localhost:8081/api/users";
+            UserServiceClient userClient = new UserServiceClient(httpService, baseUrl);
+            LoginRequest logReq = new LoginRequest(loginTextField.getText(), passwordTextField.getText());
+            ApiResponse<LoginResponse> resp = userClient.login(logReq);
+            LoginResponse logResp = resp.getBody();
+            if (resp.getStatus() == Response.Status.OK.getStatusCode())
+            {
+                loadWindow(event, "/chatapp/client/views/hello-view.fxml");
+            }
+            else if (resp.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
+            {
+                infoLabel.setText(logResp.getMessage());
+                infoLabel.setTextFill(Color.RED);
+            }
         }
     }
 

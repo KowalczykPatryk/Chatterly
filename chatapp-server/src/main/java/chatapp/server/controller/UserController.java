@@ -6,22 +6,25 @@ import chatapp.server.dto.LoginResponse;
 import chatapp.server.dto.RefreshRequest;
 import chatapp.server.dto.Tokens;
 import chatapp.server.service.UserService;
+import chatapp.server.dto.RegisterRequest;
+import chatapp.server.dto.RegisterResponse;
+import chatapp.server.utils.BcryptPasswordHasher;
 
 import chatapp.server.exceptions.TokenPersistenceException;
 import chatapp.server.exceptions.TokenValidationException;
 
 import java.util.Map;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.POST;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.inject.Inject;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.inject.Inject;
 
 /**
  * Kontroler Jersey obsługujący operacje rejestracji i logowania użytkownika.
@@ -40,16 +43,19 @@ public class UserController {
      */
     @POST
     @Path("/register")
-    public Response register(User user) {
-        boolean created = userService.register(user);
+    public Response register(RegisterRequest req) {
+        String password = req.getPassword();
+        String passwordHash = BcryptPasswordHasher.hashPassword(password);
+        boolean created = userService.register(new User(req.getUsername(), passwordHash, req.getPublicKey()));
         if (!created) {
             // 409 Conflict: login już zajęty
             return Response.status(Response.Status.CONFLICT)
-                    .entity("{ \"message\": \"Username already exists.\" }")
+                    .entity(new RegisterResponse("Username already exists."))
                     .build();
         }
+        // 201 Created: udało się zarejestrować
         return Response.status(Response.Status.CREATED)
-                .entity("{ \"message\": \"User registered successfully.\" }")
+                .entity(new RegisterResponse("User registered successfully."))
                 .build();
     }
 

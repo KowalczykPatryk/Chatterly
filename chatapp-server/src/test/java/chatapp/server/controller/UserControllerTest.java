@@ -19,12 +19,12 @@ import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import org.junit.jupiter.api.*;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.client.Client;
-import javax.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.inject.Inject;
 
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

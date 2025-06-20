@@ -4,6 +4,7 @@ import chatapp.server.db.Database;
 import chatapp.server.model.User;
 import java.util.List;
 import java.util.ArrayList;
+import chatapp.server.utils.BcryptPasswordHasher;
 
 import java.sql.*;
 
@@ -39,7 +40,7 @@ public class UserDao {
         }
         return null;
     }
-    public boolean validateCredentials(String username, String passwordHash) throws SQLException
+    public boolean validateCredentials(String username, String password) throws SQLException
     {
         try(Connection conn = Database.getConnection())
         {
@@ -50,8 +51,14 @@ public class UserDao {
                 ResultSet result = stmt.executeQuery();
                 if(result.next())
                 {
-                    if(result.getString("passwordHash") != passwordHash) return false;
-                    return true;
+                    if(BcryptPasswordHasher.verifyPassword(password, result.getString("passwordHash")))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
         }
