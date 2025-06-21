@@ -35,6 +35,11 @@ public class HelloController {
     }
 
     @FXML
+    protected void friendRequests(ActionEvent event) throws IOException {
+        loadWindow(event, "/chatapp/client/views/friendRequests.fxml", 400, 300);
+    }
+
+    @FXML
     public void initialize() {
         for(Friend f : friends) {
             friendComboBox.getItems().add(f.getUsername());
