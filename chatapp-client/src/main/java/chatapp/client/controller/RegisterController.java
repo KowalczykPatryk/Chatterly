@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import chatapp.client.HelloApplication;
+import chatapp.client.crypto.KeyStoreManager;
 
 import chatapp.client.http.HttpService;
 import chatapp.client.service.UserServiceClient;
@@ -20,6 +21,8 @@ import chatapp.client.model.ApiResponse;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
+import java.security.*;
+import java.util.Base64;
 
 public class RegisterController {
     @FXML private TextField usernameTextField;
@@ -45,17 +48,25 @@ public class RegisterController {
             HttpService httpService = new HttpService();
             String baseUrl = "http://localhost:8081/api/users";
             UserServiceClient userClient = new UserServiceClient(httpService, baseUrl);
-            RegisterRequest regReq = new RegisterRequest(usernameTextField.getText(), passwordTextField.getText(), "kluczPub");
-            ApiResponse<RegisterResponse> resp = userClient.register(regReq);
-            httpService.close();
 
-            if (resp.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                loadWindow(event, "/chatapp/client/views/logging.fxml");
-            }
-            else if (resp.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                RegisterResponse regResp = resp.getBody();
-                infoLabel.setText(regResp.getMessage());
-                infoLabel.setTextFill(Color.RED);
+            try {
+                KeyStoreManager keystore = KeyStoreManager.getInstance();
+                KeyPair keys = KeyStoreManager.KeyGeneratorUtil.generateRSAKeyPair(2048);
+                keystore.saveKeyPair("keys", keys.getPrivate(), keys.getPublic());
+                RegisterRequest regReq = new RegisterRequest(usernameTextField.getText(), passwordTextField.getText(), Base64.getEncoder().encodeToString(keys.getPublic().getEncoded()));
+                ApiResponse<RegisterResponse> resp = userClient.register(regReq);
+                httpService.close();
+                if (resp.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                    loadWindow(event, "/chatapp/client/views/logging.fxml");
+                }
+                else if (resp.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
+                    RegisterResponse regResp = resp.getBody();
+                    infoLabel.setText(regResp.getMessage());
+                    infoLabel.setTextFill(Color.RED);
+                }
+            } catch(Exception e)
+            {
+                System.err.println(e.getMessage());
             }
         }
     }

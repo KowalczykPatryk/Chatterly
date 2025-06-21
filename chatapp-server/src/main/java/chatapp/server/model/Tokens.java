@@ -1,4 +1,4 @@
-package chatapp.server.dto;
+package chatapp.server.model;
 
 public class Tokens
 {

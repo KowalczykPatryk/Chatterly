@@ -3,7 +3,7 @@ package chatapp.client.storage;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import chatapp.client.dto.Tokens;
+import chatapp.client.model.Tokens;
 import chatapp.client.model.Friend;
 
 public class SQLiteManager {

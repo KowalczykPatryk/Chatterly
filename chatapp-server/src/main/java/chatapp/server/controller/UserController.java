@@ -4,7 +4,10 @@ import chatapp.server.model.User;
 import chatapp.server.dto.LoginRequest;
 import chatapp.server.dto.LoginResponse;
 import chatapp.server.dto.RefreshRequest;
-import chatapp.server.dto.Tokens;
+import chatapp.server.dto.RefreshResponse;
+import chatapp.server.dto.LogoutRequest;
+import chatapp.server.dto.LogoutResponse;
+import chatapp.server.model.Tokens;
 import chatapp.server.service.UserService;
 import chatapp.server.dto.RegisterRequest;
 import chatapp.server.dto.RegisterResponse;
@@ -12,8 +15,6 @@ import chatapp.server.utils.BcryptPasswordHasher;
 
 import chatapp.server.exceptions.TokenPersistenceException;
 import chatapp.server.exceptions.TokenValidationException;
-
-import java.util.Map;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.POST;
@@ -63,7 +64,7 @@ public class UserController {
      * Endpoint logowania użytkownika.
      * POST /api/users/login
      * Body: { "username": "...", "password": "..." }
-     * Zwraca obiekt, który zawiera accessToken oraz refreshToken (lub komunikat o błędzie).
+     * Zwraca obiekt, który zawiera accessToken oraz refreshToken.
      */
     @POST
     @Path("/login")
@@ -85,27 +86,36 @@ public class UserController {
      * Endpoint do aktualizacji accessToken oraz refreshToken jeśli accessToken wygasł.
      * POST /api/users/refreshToken
      * Body: {"refreshToken": ...}
-     * Zwraca obiekt, który zawiera accessToken oraz refreshToken (lub komunikat o błędzie)
+     * Zwraca obiekt, który zawiera accessToken oraz refreshToken.
      */
     @POST
     @Path("/refreshToken")
     public Response refresh(RefreshRequest req) {
+        RefreshResponse resp = new RefreshResponse();
         try {
             Tokens tokens = userService.refreshTokens(req.getRefreshToken());
-            return Response.ok(tokens).build();
+            resp.setSuccess(true);
+            resp.setAccessToken(tokens.getAccessToken());
+            resp.setRefreshToken(tokens.getRefreshToken());
+            resp.setMessage("Tokens were correctly created.");
+            return Response.ok(resp).build();
 
         } catch (TokenValidationException e) {
+            resp.setSuccess(false);
+            resp.setAccessToken(null);
+            resp.setRefreshToken(null);
+            resp.setMessage(e.getMessage());
             return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(Map.of(
-                            "error", e.getCode(),
-                            "message", e.getMessage()))
+                    .entity(resp)
                     .build();
 
         } catch (TokenPersistenceException e) {
+            resp.setSuccess(false);
+            resp.setAccessToken(null);
+            resp.setRefreshToken(null);
+            resp.setMessage(e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of(
-                            "error", e.getCode(),
-                            "message", e.getMessage()))
+                    .entity(resp)
                     .build();
         }
     }
@@ -117,21 +127,17 @@ public class UserController {
      */
     @POST
     @Path("/logout")
-    public Response logout(RefreshRequest req) {
+    public Response logout(LogoutRequest req) {
         try {
             userService.logout(req.getRefreshToken());
-            return Response.ok(Map.of("message", "Logout successful.")).build();
+            return Response.ok(new LogoutResponse("You were properly logout.")).build();
         } catch (TokenValidationException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of(
-                            "error", e.getCode(),
-                            "message", e.getMessage()))
+                    .entity(new LogoutResponse(e.getMessage()))
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of(
-                            "error", "INTERNAL_ERROR",
-                            "message", "Failed to logout."))
+                    .entity(new LogoutResponse(e.getMessage()))
                     .build();
         }
     }

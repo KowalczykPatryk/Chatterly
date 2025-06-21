@@ -7,7 +7,9 @@ import chatapp.client.dto.RegisterResponse;
 import chatapp.client.dto.LoginRequest;
 import chatapp.client.dto.LoginResponse;
 import chatapp.client.dto.RefreshRequest;
-import chatapp.client.dto.Tokens;
+import chatapp.client.dto.RefreshResponse;
+import chatapp.client.dto.LogoutRequest;
+import chatapp.client.dto.LogoutResponse;
 import chatapp.client.model.ApiResponse;
 
 public class UserServiceClient implements UserApi {
@@ -29,17 +31,14 @@ public class UserServiceClient implements UserApi {
         return http.post(baseUrl + "/login", req, LoginResponse.class);
     }
 
-    //logout on the server should always return the save type of object
     @Override
-    public ApiResponse<Tokens> refresh(RefreshRequest req) {
-        return http.post(baseUrl + "/refreshToken", req, Tokens.class);
+    public ApiResponse<RefreshResponse> refresh(RefreshRequest req) {
+        return http.post(baseUrl + "/refreshToken", req, RefreshResponse.class);
     }
 
-
-    //logout on the server should always return the save type of object
     @Override
-    public void logout(RefreshRequest req) {
-        http.post(baseUrl + "/logout", req, Void.class);
+    public ApiResponse<LogoutResponse> logout(LogoutRequest req) {
+        return http.post(baseUrl + "/logout", req, LogoutResponse.class);
     }
 }
 
