@@ -26,22 +26,7 @@
             <Insets bottom="0.0" left="0.0" right="0.0" top="10.0"/>
         </padding>
         <ScrollPane fitToWidth="true" fitToHeight="false" prefHeight="200" prefWidth="360">
-            <VBox spacing="10">
-                <children>
-                    <Label text="Wiersz 1"/>
-                    <Label text="Wiersz 2"/>
-                    <Label text="Wiersz 3"/>
-                    <Label text="Wiersz 1"/>
-                    <Label text="Wiersz 2"/>
-                    <Label text="Wiersz 3"/>
-                    <Label text="Wiersz 1"/>
-                    <Label text="Wiersz 2"/>
-                    <Label text="Wiersz 3"/>
-                    <Label text="Wiersz 1"/>
-                    <Label text="Wiersz 2"/>
-                    <Label text="Wiersz 3"/>
-                </children>
-            </VBox>
+            <VBox fx:id="personList" spacing="10"/>
         </ScrollPane>
     </HBox>
 </VBox>

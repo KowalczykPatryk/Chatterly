@@ -1,9 +1,11 @@
 package chatapp.client.controller;
 
+import chatapp.client.model.Friend;
 import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -32,14 +34,24 @@ public class HelloController {
         loadWindow(event, "/chatapp/client/views/addFriends.fxml", 400, 300);
     }
 
+    @FXML
+    public void initialize() {
+        for(Friend f : friends) {
+            friendComboBox.getItems().add(f.getUsername());
+        }
+    }
+
 
     @FXML
     private TextField messageTextField;
     @FXML Label messagesLabel;
+    @FXML
+    ComboBox friendComboBox;
 
     private boolean startOfConversation = true;
     private int maxMessages = 4;
     private ArrayList<String> messages = new ArrayList<>();
+    private ArrayList<Friend> friends = new ArrayList<>();
 
 
     private int max(int a, int b) { return (a > b) ? a : b; }

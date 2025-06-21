@@ -10,6 +10,10 @@ VBox {
     -fx-background-color: cadetblue;
 }
 
+ScrollPane {
+    -fx-background-color: cadetblue;
+}
+
 Button {
     -fx-background-color: azure ;
 }
