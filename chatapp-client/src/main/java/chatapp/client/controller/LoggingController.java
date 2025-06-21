@@ -68,7 +68,7 @@ public class LoggingController {
                 }
                 catch(SQLException e)
                 {
-                    infoLabel.setText("Could not save tokens to the database.");
+                    infoLabel.setText("Błąd zapisu do bazy danych.");
                     infoLabel.setTextFill(Color.RED);
                 }
             }

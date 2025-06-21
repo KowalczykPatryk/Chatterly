@@ -14,7 +14,12 @@
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
-    <ComboBox fx:id="person" prefWidth="200.0"/>
+    <ComboBox fx:id="chatComboBox" prefWidth="200.0" onAction="#chatChanged"/>
+    <HBox>
+        <padding>
+            <Insets bottom="50.0"/>
+        </padding>
+    </HBox>
     <Label fx:id="messagesLabel" alignment="TOP_CENTER" text="To jest początek rozmowy!"/>
 
     <HBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
