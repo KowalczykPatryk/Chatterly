@@ -64,24 +64,23 @@ public class UserDao {
         }
         return false;
     }
-    public List<User> searchUsers(String searchTerm) throws SQLException
+    public List<String> searchUsernames(String searchTerm) throws SQLException
     {
-        List<User> users = new ArrayList<>();
+        List<String> usernames = new ArrayList<>();
         try(Connection conn = Database.getConnection())
         {
-            String sql = "SELECT * FROM users where username ILIKE ?";
+            String sql = "SELECT username FROM users where username ILIKE ?";
             try(PreparedStatement stmt = conn.prepareStatement(sql))
             {
                 stmt.setString(1, "%"+searchTerm+"%");
                 ResultSet result = stmt.executeQuery();
                 while(result.next())
                 {
-                    User user = new User(result.getString("username"), result.getString("passwordHash"), result.getString("publicKey"));
-                    users.add(user);
+                    usernames.add(result.getString("username"));
                 }
             }
         }
-        return users;
+        return usernames;
     }
     public boolean userExists(String username) throws SQLException
     {

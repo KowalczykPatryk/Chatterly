@@ -59,15 +59,24 @@ public class UserService {
      * Sprawdza, czy token (przypisany do danego loginu) jest ważny.
      * Używane przy np. otwieraniu WebSocket
      */
-    public boolean validateAccessToken(String username, String token) {
+    private boolean validateAccessToken(String token) {
         if(JwtUtil.isTokenUpToDate(token))
         {
-            if(JwtUtil.getUsernameFromToken(token) == username)
-            {
-                return true;
-            }
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Sprawdza, czy accessToken jest ważny.
+     * Zwraca listę usernames.
+     */
+    public List<String> getUsernames(String searchTerm, String accessToken) {
+        if (validateAccessToken(accessToken))
+        {
+            return userDao.searchUsernames(searchTerm);
+        }
+        return null;
     }
     /**
      * Validate old refresh token, rotate it, and return new Tokens.

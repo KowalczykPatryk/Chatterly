@@ -4,6 +4,9 @@ target/
 # ===== Compiled files =====
 *.class
 
+.db
+.p12
+
 # ===== Logs and temp =====
 *.log
 *.tmp

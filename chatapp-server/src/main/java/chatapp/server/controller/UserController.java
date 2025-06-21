@@ -7,6 +7,8 @@ import chatapp.server.dto.RefreshRequest;
 import chatapp.server.dto.RefreshResponse;
 import chatapp.server.dto.LogoutRequest;
 import chatapp.server.dto.LogoutResponse;
+import chatapp.server.dto.GetUsernamesRequest;
+import chatapp.server.dto.GetUsernamesResponse;
 import chatapp.server.model.Tokens;
 import chatapp.server.service.UserService;
 import chatapp.server.dto.RegisterRequest;
@@ -80,6 +82,27 @@ public class UserController {
         // Zwracamy 2 tokeny użytkownikowi
         LoginResponse resp = new LoginResponse(true, tokens.getAccessToken(), tokens.getRefreshToken(), "Login successful.");
         return Response.ok(resp).build();
+    }
+
+    /**
+     * Endpoint do pobierania pasującej do zapytania listy osób.
+     * GET /api/users/
+     * Body: {"accessToken": ..., "searchTerm": ...}
+     * Zwraca obiekt, który zawiera liste wszystkich pasujących osób.
+     */
+    @POST
+    @Path("/getUsernames")
+    public Response getUsernames(GetUsernamesRequest req)
+    {
+        List<String> usernames = userService.getUsernames(req.getSearchTerm, req.getAccessToken);
+        if (usernames == null) {
+            return Respose.status(Response.status.UNAUTHORIZED)
+                    .entity(null)
+                    .build();
+        }
+        else {
+            return Response.ok(new GetUsernamesResponse(usernames)).build();
+        }
     }
 
     /**

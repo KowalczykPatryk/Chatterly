@@ -38,7 +38,7 @@ public class UserServiceClient implements UserApi {
 
     @Override
     public ApiResponse<LogoutResponse> logout(LogoutRequest req) {
-        return http.post(baseUrl + "/logout", req, LogoutResponse.class);
+        return  http.post(baseUrl + "/logout", req, LogoutResponse.class);
     }
 }
 
