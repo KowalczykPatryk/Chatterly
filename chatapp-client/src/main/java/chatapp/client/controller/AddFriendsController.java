@@ -1,6 +1,7 @@
 package chatapp.client.controller;
 
 import chatapp.client.model.Friend;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -47,13 +48,25 @@ public class AddFriendsController
 
     }
 
+
+    EventHandler<ActionEvent> acceptRequestHandler = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent e)
+        {
+            Node node = (Node) e.getSource();
+            String username = node.getId();
+        }
+    };
+
     private void loadUsernames() {
         personList.getChildren().clear();
         for (String username : usernames) {
             HBox h = new HBox();
             h.setSpacing(20);
             h.getChildren().add(new Label(username));
-            h.getChildren().add(new Button("Wyślij zaproszenie"));
+            Button b = new Button("Wyślij zaproszenie");
+            b.setId(username);
+            b.setOnAction(acceptRequestHandler);
+            h.getChildren().add(b);
             personList.getChildren().add(h);
         }
     }

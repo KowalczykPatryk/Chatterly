@@ -16,6 +16,7 @@ ScrollPane {
 
 Button {
     -fx-background-color: azure ;
+    -fx-cursor: hand;
 }
 
 TextField {
