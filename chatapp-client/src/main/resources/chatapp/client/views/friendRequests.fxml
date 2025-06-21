@@ -9,17 +9,15 @@
 <?import javafx.scene.control.ScrollPane?>
 
 <VBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="chatapp.client.controller.AddFriendsController">
+      fx:controller="chatapp.client.controller.friendRequestsController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
     <HBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml">
         <padding>
-            <Insets bottom="10.0" left="0.0" right="0.0" top="0.0"/>
+            <Insets bottom="10.0" right="350.0"/>
         </padding>
         <Button text="&lt;-" onAction="#goBack" prefWidth="20.0"/>
-        <TextField fx:id="searchFriendsTextField" promptText="Search" prefWidth="100.0"/>
-        <Button text="Search" onAction="#search" prefWidth="80.0"/>
     </HBox>
     <HBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml">
         <padding>

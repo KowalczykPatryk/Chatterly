@@ -1,25 +1,22 @@
 package chatapp.client.controller;
 
+import chatapp.client.HelloApplication;
 import chatapp.client.model.Friend;
-import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import chatapp.client.HelloApplication;
-
-public class AddFriendsController
+public class friendRequestsController
 {
     @FXML private VBox personList;
 
@@ -41,7 +38,7 @@ public class AddFriendsController
             HBox h = new HBox();
             h.setSpacing(20);
             h.getChildren().add(new Label(friend.getUsername()));
-            h.getChildren().add(new Button("Wyślij zaproszenie"));
+            h.getChildren().add(new Button("Zaakceptuj zaproszenie"));
             personList.getChildren().add(h);
         }
     }
@@ -59,10 +56,5 @@ public class AddFriendsController
     protected void goBack(ActionEvent event) throws IOException
     {
         loadWindow(event, "/chatapp/client/views/hello-view.fxml", 400, 300);
-    }
-    @FXML
-    protected void search(ActionEvent event) throws IOException
-    {
-
     }
 }
