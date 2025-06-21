@@ -81,7 +81,7 @@ public class SQLiteManager {
         return null;
     }
 
-    public void upsertFriend(String username, String lastMessage) throws SQLException {
+    public void upsertFriend(String username) throws SQLException {
         String upsert = "INSERT INTO friends (username) VALUES (?) "
                 + "ON CONFLICT(username) DO NOTHING;";
 
