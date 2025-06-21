@@ -6,6 +6,8 @@ import chatapp.client.dto.RegisterRequest;
 import chatapp.client.dto.RegisterResponse;
 import chatapp.client.dto.LoginRequest;
 import chatapp.client.dto.LoginResponse;
+import chatapp.client.dto.GetUsernamesRequest;
+import chatapp.client.dto.GetUsernamesResponse;
 import chatapp.client.dto.RefreshRequest;
 import chatapp.client.dto.RefreshResponse;
 import chatapp.client.dto.LogoutRequest;
@@ -29,6 +31,11 @@ public class UserServiceClient implements UserApi {
     @Override
     public ApiResponse<LoginResponse> login(LoginRequest req) {
         return http.post(baseUrl + "/login", req, LoginResponse.class);
+    }
+
+    @Override
+    public ApiResponse<GetUsernamesResponse> getUsernames(GetUsernamesRequest req) {
+        return http.post(baseUrl + "/getUsernames", req, GetUsernamesResponse.class);
     }
 
     @Override

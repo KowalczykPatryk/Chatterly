@@ -1,5 +1,7 @@
 package chatapp.client.dto;
 
+import java.util.List;
+
 public class GetUsernamesResponse {
     private List<String> usernames;
 

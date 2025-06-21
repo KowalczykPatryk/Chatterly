@@ -12,7 +12,7 @@ import java.util.Date;
 
 public class JwtUtil {
     private static Key key;
-    private static final long ACCESS_EXP_MS  = 15 * 60_000;
+    private static final long ACCESS_EXP_MS  = 30 * 60_000;
     private static final long REFRESH_EXP_MS = 30L * 24*60*60_000;
 
     public static void init(Key signingKey) {
@@ -53,8 +53,13 @@ public class JwtUtil {
 
     public static boolean isTokenUpToDate(String token) {
         Jws<Claims> claims = validateToken(token);
-        return claims != null && claims.getBody().getExpiration().before(new Date());
+        if (claims == null) {
+            return false;
+        }
+        Date expiration = claims.getBody().getExpiration();
+        return expiration.after(new Date());
     }
+
 
     public Instant getRefreshExpiry() {
         return Instant.now().plusMillis(REFRESH_EXP_MS);

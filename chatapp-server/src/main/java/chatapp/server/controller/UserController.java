@@ -28,6 +28,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.inject.Inject;
+import java.sql.*;
+
+import java.util.List;
 
 /**
  * Kontroler Jersey obsługujący operacje rejestracji i logowania użytkownika.
@@ -94,15 +97,21 @@ public class UserController {
     @Path("/getUsernames")
     public Response getUsernames(GetUsernamesRequest req)
     {
-        List<String> usernames = userService.getUsernames(req.getSearchTerm, req.getAccessToken);
-        if (usernames == null) {
-            return Respose.status(Response.status.UNAUTHORIZED)
+        try {
+            List<String> usernames = userService.getUsernames(req.getSearchTerm(), req.getAccessToken());
+            return Response.ok(new GetUsernamesResponse(usernames)).build();
+        } catch(TokenValidationException e)
+        {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(null)
+                    .build();
+        } catch(SQLException e)
+        {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(null)
                     .build();
         }
-        else {
-            return Response.ok(new GetUsernamesResponse(usernames)).build();
-        }
+
     }
 
     /**

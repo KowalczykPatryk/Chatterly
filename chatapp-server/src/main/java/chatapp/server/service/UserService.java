@@ -5,12 +5,13 @@ import chatapp.server.auth.JwtUtil;
 import chatapp.server.dao.RefreshTokenDao;
 import chatapp.server.dao.UserDao;
 import chatapp.server.dao.UserStatusDao;
-import chatapp.server.dto.Tokens;
+import chatapp.server.model.Tokens;
 
 import chatapp.server.exceptions.TokenPersistenceException;
 import chatapp.server.exceptions.TokenValidationException;
 
 import java.sql.*;
+import java.util.List;
 
 public class UserService {
     private final UserDao userDao = new UserDao();
@@ -71,12 +72,14 @@ public class UserService {
      * Sprawdza, czy accessToken jest ważny.
      * Zwraca listę usernames.
      */
-    public List<String> getUsernames(String searchTerm, String accessToken) {
+    public List<String> getUsernames(String searchTerm, String accessToken) throws TokenValidationException, SQLException {
         if (validateAccessToken(accessToken))
         {
             return userDao.searchUsernames(searchTerm);
         }
-        return null;
+        else {
+            throw new TokenValidationException("invalid_token", "Access token was not accepted.");
+        }
     }
     /**
      * Validate old refresh token, rotate it, and return new Tokens.

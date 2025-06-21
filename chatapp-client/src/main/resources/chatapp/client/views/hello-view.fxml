@@ -12,15 +12,15 @@
 <VBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="chatapp.client.controller.HelloController">
     <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="1.0"/>
     </padding>
-    <HBox>
+    <HBox alignment="BOTTOM_CENTER" spacing="10.0" xmlns:fx="http://javafx.com/fxml">
         <padding>
-            <Insets bottom="30.0" left="20.0"/>
+            <Insets bottom="30.0"/>
         </padding>
-        <Button text="Zaproszenia do znajomych" onAction="#friendRequests"/>
+        <Button text="Friendship requests" onAction="#friendRequests"/>
+        <Button text="Add friends" onAction="#addFriends"/>
     </HBox>
-    <Button text="Add friends" onAction="#addFriends" prefWidth="200.0"/>
     <ComboBox fx:id="friendComboBox" prefWidth="200.0"/>
     <Label fx:id="messagesLabel" alignment="TOP_CENTER" text="To jest początek rozmowy!"/>
 

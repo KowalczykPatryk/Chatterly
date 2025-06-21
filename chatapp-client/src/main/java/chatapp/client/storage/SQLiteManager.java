@@ -70,6 +70,16 @@ public class SQLiteManager {
         }
         return null;
     }
+    public String getAccessToken() throws SQLException {
+        String query = "SELECT access_token FROM tokens WHERE id = 1;";
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery(query);
+            if (rs.next()) {
+                return rs.getString("access_token");
+            }
+        }
+        return null;
+    }
 
     public void upsertFriend(String username, String lastMessage) throws SQLException {
         String upsert = "INSERT INTO friends (username) VALUES (?) "
