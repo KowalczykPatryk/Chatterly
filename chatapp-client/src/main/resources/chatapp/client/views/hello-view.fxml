@@ -20,6 +20,7 @@
         </padding>
         <Button text="Friendship requests" onAction="#friendRequests"/>
         <Button text="Add friends" onAction="#addFriends"/>
+        <Button text="Logout" onAction="#logout"/>
     </HBox>
     <ComboBox fx:id="friendComboBox" prefWidth="200.0"/>
     <Label fx:id="messagesLabel" alignment="TOP_CENTER" text="To jest początek rozmowy!"/>

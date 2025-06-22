@@ -5,6 +5,7 @@ import chatapp.client.storage.SQLiteManager;
 import chatapp.client.dto.FriendAddRequest;
 import chatapp.client.model.MyUsername;
 import chatapp.client.dto.FriendRequestResponse;
+import chatapp.client.model.Friend;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -146,6 +147,39 @@ public class FriendServiceClient {
             System.out.println("SQLException: " + e.getMessage());
         }
         return false;
+    }
+    public List<Friend> getFriends()
+    {
+        try {
+            String accessToken = dbManager.getAccessToken();
+            Response response = client
+                    .target(baseUrl+"/"+MyUsername.getMyUsername()+"/list")
+                    .request(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .get();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode())
+            {
+                List<Friend> friends = response.readEntity(new GenericType<List<Friend>>() {});
+                for (Friend friend: friends)
+                {
+                    dbManager.upsertFriend(friend.getUsername(), friend.getPublicKey());
+                }
+                return friends;
+            }
+            else if(response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
+            {
+                System.out.println("Wrong access token");
+            }
+            else if(response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            {
+                System.out.println("Getting friends failed");
+            }
+        } catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+        return null;
     }
 
 }

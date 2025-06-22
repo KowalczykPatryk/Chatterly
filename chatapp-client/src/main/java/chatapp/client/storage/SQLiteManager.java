@@ -81,11 +81,20 @@ public class SQLiteManager {
         }
         return null;
     }
+    public String getRefreshToken() throws SQLException {
+        String query = "SELECT refresh_token FROM tokens WHERE id = 1;";
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery(query);
+            if (rs.next()) {
+                return rs.getString("refresh_token");
+            }
+        }
+        return null;
+    }
 
     public void upsertFriend(String username, String publicKey) throws SQLException {
         String upsert = "INSERT INTO friends (username, publicKey) VALUES (?, ?) "
                 + "ON CONFLICT(username) DO NOTHING;";
-
         try (PreparedStatement ps = connection.prepareStatement(upsert)) {
             ps.setString(1, username);
             ps.setString(2, publicKey);
