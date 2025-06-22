@@ -26,14 +26,24 @@ public class FriendDao
     public void saveAcceptFriendRequest(int userIdFrom, int userIdTo) throws SQLException{
         try( Connection conn = Database.getConnection())
         {
-            String sql = "UPDATE friends SET status='accepted' WHERE ((userId=? AND friendId=?) OR (userId=? AND friendId=?)) AND status='pending'";
-            try(PreparedStatement stmt = conn.prepareStatement(sql))
+            conn.setAutoCommit(false);
+            String UpdateQuery = "UPDATE friends SET status='accepted' WHERE ((userId=? AND friendId=?) OR (userId=? AND friendId=?)) AND status='pending';";
+            String DeleteQuery = "DELETE FROM friends WHERE ((userId = ? AND friendId = ?) OR (userId=? AND friendId=?)) AND status='rejected';";
+            try(PreparedStatement update = conn.prepareStatement(UpdateQuery); PreparedStatement delete = conn.prepareStatement(DeleteQuery))
             {
-                stmt.setInt(1, userIdTo);
-                stmt.setInt(2, userIdFrom);
-                stmt.setInt(3, userIdFrom);
-                stmt.setInt(4, userIdTo);
-                stmt.executeUpdate();
+                update.setInt(1, userIdTo);
+                update.setInt(2, userIdFrom);
+                update.setInt(3, userIdFrom);
+                update.setInt(4, userIdTo);
+                update.executeUpdate();
+
+                delete.setInt(1, userIdTo);
+                delete.setInt(2, userIdFrom);
+                delete.setInt(3, userIdFrom);
+                delete.setInt(4, userIdTo);
+                delete.executeUpdate();
+
+                conn.commit();
             }
         }
     }
@@ -106,17 +116,39 @@ public class FriendDao
         }
     }
     public String getFriendshipStatus(int userIdFrom, int userIdTo) throws SQLException{
-        String sql = "SELECT status FROM friends WHERE userId=? AND friendId=?";
-        try (Connection conn = Database.getConnection())
-        {
-            try(PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, userIdTo);
-                stmt.setInt(2, userIdFrom);
-                try (ResultSet result = stmt.executeQuery()) {
-                    if (result.next()) {
-                        return result.getString("status");
+        String acceptedSql =
+                        "SELECT 1 "
+                        + "FROM friends "
+                        + "WHERE "
+                        + "  ((userId = ? AND friendId = ?) OR (userId = ? AND friendId = ?)) "
+                        + "  AND status = 'accepted'";
+
+        String statusSql =
+                        "SELECT status "
+                        + "FROM friends "
+                        + "WHERE (userId = ? AND friendId = ?)";
+
+        try (Connection conn = Database.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(acceptedSql)) {
+                ps.setInt(1, userIdFrom);
+                ps.setInt(2, userIdTo);
+                ps.setInt(3, userIdTo);
+                ps.setInt(4, userIdFrom);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return "accepted";
                     }
-                    else{
+                }
+            }
+            try (PreparedStatement ps2 = conn.prepareStatement(statusSql)) {
+                ps2.setInt(1, userIdTo);
+                ps2.setInt(2, userIdFrom);
+
+                try (ResultSet rs2 = ps2.executeQuery()) {
+                    if (rs2.next()) {
+                        return rs2.getString("status");
+                    } else {
                         return "Not a friend";
                     }
                 }

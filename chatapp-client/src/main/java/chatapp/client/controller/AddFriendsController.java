@@ -88,6 +88,7 @@ public class AddFriendsController
             else
             {
                 b = new Button("Sth unpredicted happened");
+                b.setDisable(true);
             }
             b.setId(username);
             b.setOnAction(inviteHandler);

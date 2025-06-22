@@ -75,7 +75,8 @@ public class UserService {
     public List<String> getUsernames(String searchTerm, String accessToken) throws TokenValidationException, SQLException {
         if (validateAccessToken(accessToken))
         {
-            return userDao.searchUsernames(searchTerm);
+            String username = jwtUtil.getUsernameFromToken(accessToken);
+            return userDao.searchUsernames(searchTerm, username);
         }
         else {
             throw new TokenValidationException("invalid_token", "Access token was not accepted.");

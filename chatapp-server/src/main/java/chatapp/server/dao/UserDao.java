@@ -64,7 +64,7 @@ public class UserDao {
         }
         return false;
     }
-    public List<String> searchUsernames(String searchTerm) throws SQLException
+    public List<String> searchUsernames(String searchTerm, String username) throws SQLException
     {
         List<String> usernames = new ArrayList<>();
         try(Connection conn = Database.getConnection())
@@ -76,7 +76,10 @@ public class UserDao {
                 ResultSet result = stmt.executeQuery();
                 while(result.next())
                 {
-                    usernames.add(result.getString("username"));
+                    if (!result.getString("username").equals(username))
+                    {
+                        usernames.add(result.getString("username"));
+                    }
                 }
             }
         }
