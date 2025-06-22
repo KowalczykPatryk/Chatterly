@@ -29,6 +29,13 @@ import java.sql.*;
 
 import chatapp.client.HelloApplication;
 import chatapp.client.storage.SQLiteManager;
+import chatapp.client.service.FriendServiceClient;
+
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 public class AddFriendsController
 {
@@ -36,6 +43,7 @@ public class AddFriendsController
     @FXML private TextField searchUsernamesTextField;
 
     private List<String> usernames = new ArrayList<>();
+    private FriendServiceClient friendServiceClient = new FriendServiceClient();
 
     private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
@@ -56,6 +64,11 @@ public class AddFriendsController
             String username = node.getId();
         }
     };
+    private final EventHandler<ActionEvent> inviteHandler = event -> {
+        Button btn = (Button) event.getSource();
+        String userToInvite = btn.getId();
+        sendInvitationTo(userToInvite, btn);
+    };
 
     private void loadUsernames() {
         personList.getChildren().clear();
@@ -63,11 +76,21 @@ public class AddFriendsController
             HBox h = new HBox();
             h.setSpacing(20);
             h.getChildren().add(new Label(username));
+            // dodać pobieranie z bazy serwera stanu przyjażni
             Button b = new Button("Wyślij zaproszenie");
+
             b.setId(username);
-            b.setOnAction(acceptRequestHandler);
+            b.setOnAction(inviteHandler);
             h.getChildren().add(b);
             personList.getChildren().add(h);
+        }
+    }
+    private void sendInvitationTo(String username, Button btn) {
+        if (friendServiceClient.sendInvitationTo(username)) {
+            btn.setDisable(true);
+            btn.setText("Wysłano zaproszenie");
+        } else {
+            btn.setDisable(true);
         }
     }
 

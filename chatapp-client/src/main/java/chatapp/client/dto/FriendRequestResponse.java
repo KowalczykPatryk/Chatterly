@@ -1,4 +1,4 @@
-package chatapp.server.dto;
+package chatapp.client.dto;
 
 public class FriendRequestResponse
 {

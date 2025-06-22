@@ -2,6 +2,7 @@ package chatapp.client.controller;
 
 import chatapp.client.HelloApplication;
 import chatapp.client.model.Friend;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,8 +48,8 @@ public class friendRequestsController
     @FXML
     public void initialize() {
         //test
-        people.add(new Friend("stachu"));
-        people.add(new Friend("stachu2"));
+        people.add(new Friend("stachu" ,"publicKey"));
+        people.add(new Friend("stachu2", "publicKey"));
         //
         loadPeople();
     }

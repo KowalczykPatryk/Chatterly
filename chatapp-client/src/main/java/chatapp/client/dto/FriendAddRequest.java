@@ -1,17 +1,15 @@
-package chatapp.server.dto;
+package chatapp.client.dto;
 
-public class FriendRequestResponse
+public class FriendAddRequest
 {
     private String usernameFrom;
     private String usernameTo;
-    private boolean status;
 
-    public FriendRequestResponse() {}
-    public FriendRequestResponse(String usernameFrom, String usernameTo,  boolean status)
+    public FriendAddRequest() {}
+    public FriendAddRequest(String usernameFrom, String usernameTo)
     {
         this.usernameFrom = usernameFrom;
         this.usernameTo = usernameTo;
-        this.status = status;
     }
     public String getUsernameFrom()
     {
@@ -28,13 +26,5 @@ public class FriendRequestResponse
     public  void setUsernameTo(String usernameTo)
     {
         this.usernameTo = usernameTo;
-    }
-    public boolean getStatus()
-    {
-        return status;
-    }
-    public void setStatus(boolean status)
-    {
-        this.status = status;
     }
 }

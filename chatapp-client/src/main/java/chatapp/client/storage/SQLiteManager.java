@@ -34,7 +34,8 @@ public class SQLiteManager {
                 + "refresh_token TEXT NOT NULL" + ");";
 
         String createFriendsTable = "CREATE TABLE IF NOT EXISTS friends ("
-                + "username TEXT PRIMARY KEY" + ");";
+                + "username TEXT PRIMARY KEY, "
+                + "publicKey TEXT NOT NULL"+ ");";
 
         String createLastMessagesTable = "CREATE TABLE IF NOT EXISTS lastmessages ("
                 + "id integer PRIMARY KEY AUTOINCREMENT,"
@@ -81,24 +82,25 @@ public class SQLiteManager {
         return null;
     }
 
-    public void upsertFriend(String username) throws SQLException {
-        String upsert = "INSERT INTO friends (username) VALUES (?) "
+    public void upsertFriend(String username, String publicKey) throws SQLException {
+        String upsert = "INSERT INTO friends (username, publicKey) VALUES (?, ?) "
                 + "ON CONFLICT(username) DO NOTHING;";
 
         try (PreparedStatement ps = connection.prepareStatement(upsert)) {
             ps.setString(1, username);
+            ps.setString(2, publicKey);
             ps.executeUpdate();
         }
     }
 
     public List<Friend> loadFriends() throws SQLException {
         List<Friend> friends = new ArrayList<>();
-        String query = "SELECT username FROM friends;";
+        String query = "SELECT * FROM friends;";
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
-                friends.add(new Friend(rs.getString("username")));
+                friends.add(new Friend(rs.getString("username"), rs.getString("publicKey")));
             }
         }
         return friends;
