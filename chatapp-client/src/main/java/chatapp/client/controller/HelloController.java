@@ -73,7 +73,9 @@ public class HelloController {
             LogoutRequest logReq = new LogoutRequest(dbManager.getRefreshToken());
             ApiResponse<LogoutResponse> resp = userClient.logout(logReq);
             LogoutResponse logResp = resp.getBody();
-            loadWindow(event, "/chatapp/client/views/logging.fxml", 400, 300);
+            if (logResp.getMessage().equals("You were properly logout.")) {
+                loadWindow(event, "/chatapp/client/views/logging.fxml", 400, 300);
+            }
         } catch(SQLException e) {}
     }
 

@@ -135,7 +135,7 @@ public class UserService {
             throw new TokenValidationException("missing_token",
                     "Refresh token was not provided.");
         }
-        if(jwtUtil.isTokenUpToDate(oldRefreshToken))
+        if(!jwtUtil.isTokenUpToDate(oldRefreshToken))
         {
             throw new TokenValidationException("invalid_token",
                     "Refresh token is illformed or expired.");
