@@ -57,14 +57,6 @@ public class AddFriendsController
 
     }
 
-
-    EventHandler<ActionEvent> acceptRequestHandler = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent e)
-        {
-            Node node = (Node) e.getSource();
-            String username = node.getId();
-        }
-    };
     private final EventHandler<ActionEvent> inviteHandler = event -> {
         Button btn = (Button) event.getSource();
         String userToInvite = btn.getId();
@@ -77,9 +69,26 @@ public class AddFriendsController
             HBox h = new HBox();
             h.setSpacing(20);
             h.getChildren().add(new Label(username));
-            // dodać pobieranie z bazy serwera stanu przyjażni
-            Button b = new Button("Wyślij zaproszenie");
-
+            String status = friendServiceClient.getFriendshipStatus(username);
+            Button b;
+            if (status.equals("Not a friend")) {
+                b = new Button("Send invitation");
+            }
+            else if(status.equals("accepted")){
+                b = new Button("Your friend");
+                b.setDisable(true);
+            }
+            else if(status.equals("pending")){
+                b = new Button("Waiting for acceptation");
+                b.setDisable(true);
+            }
+            else if(status.equals("rejected")){
+                b = new Button("Your invitation was rejected");
+            }
+            else
+            {
+                b = new Button("Sth unpredicted happened");
+            }
             b.setId(username);
             b.setOnAction(inviteHandler);
             h.getChildren().add(b);
@@ -90,8 +99,6 @@ public class AddFriendsController
         if (friendServiceClient.sendInvitationTo(username)) {
             btn.setDisable(true);
             btn.setText("Wysłano zaproszenie");
-        } else {
-            btn.setDisable(true);
         }
     }
 

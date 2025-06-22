@@ -98,7 +98,7 @@ public class FriendService
     {
         if(JwtUtil.isTokenUpToDate(accessToken))
         {
-            if (JwtUtil.getUsernameFromToken(accessToken).equals(usernameFrom))
+            if (JwtUtil.getUsernameFromToken(accessToken).equals(usernameTo))
             {
                 int userIdFrom = userDao.getId(usernameFrom);
                 int userIdTo = userDao.getId(usernameTo);

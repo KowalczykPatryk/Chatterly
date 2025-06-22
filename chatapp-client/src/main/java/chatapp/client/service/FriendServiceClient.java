@@ -38,14 +38,13 @@ public class FriendServiceClient {
             System.out.println("SQLException: " + e.getMessage());
             return false;
         }
-        client.register(org.glassfish.jersey.jackson.JacksonFeature.class);
         Response response = client
                 .target(baseUrl+"/requests")
                 .request(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
 
-        client.close();
+//        client.close();
 
         if (response.getStatus() == Response.Status.CREATED.getStatusCode())
         {
@@ -61,6 +60,34 @@ public class FriendServiceClient {
         }
         System.out.println("get there");
         return false;
+    }
+    public String getFriendshipStatus(String username)
+    {
+        try {
+            String accessToken = dbManager.getAccessToken();
+            Response response = client
+                    .target(baseUrl+"/"+username+"/status/"+MyUsername.getMyUsername())
+                    .request(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .get();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode())
+            {
+                return response.readEntity(String.class);
+            }
+            else if(response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
+            {
+                System.out.println("Wrong access token");
+            }
+            else if(response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            {
+                System.out.println("Getting status failed");
+            }
+        } catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+        return "";
     }
 
 }
