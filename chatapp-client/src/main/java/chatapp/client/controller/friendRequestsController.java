@@ -47,7 +47,7 @@ public class friendRequestsController
             p.getChildren().remove(node.getParent());
             try {
                 SQLiteManager s = SQLiteManager.getInstance();
-                s.upsertFriend(username);
+                s.upsertFriend(username, "publicKey");
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
