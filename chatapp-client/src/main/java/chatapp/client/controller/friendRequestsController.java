@@ -3,6 +3,7 @@ package chatapp.client.controller;
 import chatapp.client.HelloApplication;
 import chatapp.client.model.Friend;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -33,12 +34,25 @@ public class friendRequestsController
 
     }
 
+    EventHandler<ActionEvent> acceptRequestHandler = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent e)
+        {
+            Node node = (Node) e.getSource();
+            String username = node.getId();
+            VBox p = (VBox)(node.getParent().getParent());
+            p.getChildren().remove(node.getParent());
+        }
+    };
+
     private void loadPeople() {
         for (Friend friend : people) {
             HBox h = new HBox();
             h.setSpacing(20);
             h.getChildren().add(new Label(friend.getUsername()));
-            h.getChildren().add(new Button("Zaakceptuj zaproszenie"));
+            Button b = new Button("Zaakceptuj zaproszenie");
+            b.setId(friend.getUsername());
+            b.setOnAction(acceptRequestHandler);
+            h.getChildren().add(b);
             personList.getChildren().add(h);
         }
     }

@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
@@ -49,13 +50,7 @@ public class AddFriendsController
     }
 
 
-    EventHandler<ActionEvent> acceptRequestHandler = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent e)
-        {
-            Node node = (Node) e.getSource();
-            String username = node.getId();
-        }
-    };
+
 
     private void loadUsernames() {
         personList.getChildren().clear();
@@ -65,7 +60,6 @@ public class AddFriendsController
             h.getChildren().add(new Label(username));
             Button b = new Button("Wyślij zaproszenie");
             b.setId(username);
-            b.setOnAction(acceptRequestHandler);
             h.getChildren().add(b);
             personList.getChildren().add(h);
         }
