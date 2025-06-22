@@ -10,7 +10,7 @@ VBox {
     -fx-background-color: cadetblue;
 }
 
-ScrollPane {
+ScrollPane > .viewport {
     -fx-background-color: cadetblue;
 }
 

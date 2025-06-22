@@ -4,14 +4,17 @@ import jakarta.ws.rs.core.Response;
 import chatapp.client.storage.SQLiteManager;
 import chatapp.client.dto.FriendAddRequest;
 import chatapp.client.model.MyUsername;
+import chatapp.client.dto.FriendRequestResponse;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.GenericType;
 
 import java.sql.*;
+import java.util.List;
 
 public class FriendServiceClient {
     private final String baseUrl = "http://localhost:8081/api/friends";
@@ -43,8 +46,6 @@ public class FriendServiceClient {
                 .request(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken)
                 .post(Entity.entity(req, MediaType.APPLICATION_JSON));
-
-//        client.close();
 
         if (response.getStatus() == Response.Status.CREATED.getStatusCode())
         {
@@ -88,6 +89,63 @@ public class FriendServiceClient {
             System.out.println("SQLException: " + e.getMessage());
         }
         return "";
+    }
+    public List<String> getFriendshipRequests()
+    {
+        try {
+            String accessToken = dbManager.getAccessToken();
+            Response response = client
+                    .target(baseUrl+"/requests/incoming/"+MyUsername.getMyUsername())
+                    .request(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .get();
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode())
+            {
+                return response.readEntity(new GenericType<List<String>>() {});
+            }
+            else if(response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
+            {
+                System.out.println("Wrong access token");
+            }
+            else if(response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            {
+                System.out.println("Getting status failed");
+            }
+        } catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+        return null;
+    }
+    public boolean respondToFriendRequest(String username, boolean accept)
+    {
+        try {
+            String accessToken = dbManager.getAccessToken();
+            FriendRequestResponse res = new FriendRequestResponse(MyUsername.getMyUsername(), username, accept);
+            Response response = client
+                    .target(baseUrl+"/requests/respond")
+                    .request(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .post(Entity.entity(res, MediaType.APPLICATION_JSON));
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode())
+            {
+                return true;
+            }
+            else if(response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode())
+            {
+                System.out.println("Wrong access token");
+            }
+            else if(response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            {
+                System.out.println("Sending response to friendhship request failed");
+            }
+        } catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+        return false;
     }
 
 }

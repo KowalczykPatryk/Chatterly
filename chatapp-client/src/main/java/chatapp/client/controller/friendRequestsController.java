@@ -20,12 +20,15 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+import chatapp.client.service.FriendServiceClient;
 
 public class friendRequestsController
 {
     @FXML private VBox personList;
 
-    private ArrayList<Friend> people = new ArrayList<>();
+    private List<String> people = new ArrayList<>();
+    private FriendServiceClient friendServiceClient = new FriendServiceClient();
 
     private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
@@ -38,41 +41,62 @@ public class friendRequestsController
 
     }
 
-    EventHandler<ActionEvent> acceptRequestHandler = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent e)
-        {
-            Node node = (Node) e.getSource();
-            String username = node.getId();
-            VBox p = (VBox)(node.getParent().getParent());
-            p.getChildren().remove(node.getParent());
-            try {
-                SQLiteManager s = SQLiteManager.getInstance();
-                s.upsertFriend(username, "publicKey");
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+    private final EventHandler<ActionEvent> invitationRequestHandler = event -> {
+        Button btn = (Button) event.getSource();
+        String username = btn.getId();
+        String action = (String) btn.getUserData();
+
+        HBox h = (HBox)(btn.getParent());
+        List<Node> toRemove = new ArrayList<>();
+        for (Node node : h.getChildren()) {
+            if (node instanceof Button) {
+                ((Button) node).setDisable(true);
+                if (node != btn)
+                {
+                    toRemove.add(node);
+                }
             }
         }
+        h.getChildren().removeAll(toRemove);
+
+        if ("accept".equals(action)) {
+            handleAccept(username, btn);
+        } else {
+            handleReject(username, btn);
+        }
     };
+    private void handleAccept(String username, Button accept) {
+        if (friendServiceClient.respondToFriendRequest(username, true)) {
+            accept.setText("Accepted");
+        }
+    }
+    private void handleReject(String username, Button reject) {
+        if (friendServiceClient.respondToFriendRequest(username, false)) {
+            reject.setText("Rejected");
+        }
+    }
 
     private void loadPeople() {
-        for (Friend friend : people) {
+        for (String username : people) {
             HBox h = new HBox();
             h.setSpacing(20);
-            h.getChildren().add(new Label(friend.getUsername()));
-            Button b = new Button("Zaakceptuj zaproszenie");
-            b.setId(friend.getUsername());
-            b.setOnAction(acceptRequestHandler);
-            h.getChildren().add(b);
+            h.getChildren().add(new Label(username));
+            Button accept = new Button("Accept");
+            Button reject = new Button("Reject");
+            accept.setId(username);
+            accept.setUserData("accept");
+            reject.setId(username);
+            reject.setUserData("reject");
+            accept.setOnAction(invitationRequestHandler);
+            reject.setOnAction(invitationRequestHandler);
+            h.getChildren().addAll(accept, reject);
             personList.getChildren().add(h);
         }
     }
 
     @FXML
     public void initialize() {
-        //test
-        people.add(new Friend("stachu" ,"publicKey"));
-        people.add(new Friend("stachu2", "publicKey"));
-        //
+        people = friendServiceClient.getFriendshipRequests();
         loadPeople();
     }
 

@@ -97,7 +97,7 @@ public class FriendDao
                 try (ResultSet result = stmt.executeQuery()) {
                     while (result.next()) {
                         UserDao userDao = new UserDao();
-                        String username = userDao.getUsername(result.getInt("friendId"));
+                        String username = userDao.getUsername(result.getInt("userId"));
                         requests.add(username);
                     }
                 }
