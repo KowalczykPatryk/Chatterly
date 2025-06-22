@@ -2,6 +2,7 @@ package chatapp.client.controller;
 
 import chatapp.client.HelloApplication;
 import chatapp.client.model.Friend;
+import chatapp.client.storage.SQLiteManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -15,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class friendRequestsController
@@ -41,6 +43,12 @@ public class friendRequestsController
             String username = node.getId();
             VBox p = (VBox)(node.getParent().getParent());
             p.getChildren().remove(node.getParent());
+            try {
+                SQLiteManager s = SQLiteManager.getInstance();
+                s.upsertFriend(username);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     };
 
