@@ -52,7 +52,7 @@ public class RegisterController {
             try {
                 KeyStoreManager keystore = KeyStoreManager.getInstance();
                 KeyPair keys = KeyStoreManager.KeyGeneratorUtil.generateRSAKeyPair(2048);
-                keystore.saveKeyPair("keys", keys.getPrivate(), keys.getPublic());
+                keystore.saveKeyPair(usernameTextField.getText(), keys.getPrivate(), keys.getPublic());
                 RegisterRequest regReq = new RegisterRequest(usernameTextField.getText(), passwordTextField.getText(), Base64.getEncoder().encodeToString(keys.getPublic().getEncoded()));
                 ApiResponse<RegisterResponse> resp = userClient.register(regReq);
                 httpService.close();
