@@ -35,7 +35,7 @@ import jakarta.ws.rs.core.Response;
 public class HelloController {
     private FriendServiceClient friendServiceClient = new FriendServiceClient();
     private boolean startOfConversation = true;
-    private int maxMessages = 4;
+    private int maxMessages = 5;
     private List<String> messages = new ArrayList<>();
     private List<Friend> friends = new ArrayList<>();
 
