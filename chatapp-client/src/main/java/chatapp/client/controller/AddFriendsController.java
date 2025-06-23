@@ -21,7 +21,7 @@ import chatapp.client.service.UserServiceClient;
 import chatapp.client.dto.GetUsernamesRequest;
 import chatapp.client.dto.GetUsernamesResponse;
 import chatapp.client.model.ApiResponse;
-import jakarta.ws.rs.core.Response;
+import chatapp.client.model.MyUsername;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -118,7 +118,7 @@ public class AddFriendsController
     {
         try {
             SQLiteManager manager = SQLiteManager.getInstance();
-            String accessToken = manager.getAccessToken();
+            String accessToken = manager.getAccessToken(MyUsername.getMyUsername());
 
             HttpService httpService = new HttpService();
             String baseUrl = "http://localhost:8081/api/users";

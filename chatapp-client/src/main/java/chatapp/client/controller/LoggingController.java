@@ -20,6 +20,7 @@ import chatapp.client.service.UserServiceClient;
 import chatapp.client.dto.LoginRequest;
 import chatapp.client.dto.LoginResponse;
 import chatapp.client.model.ApiResponse;
+import chatapp.client.model.MyUsername;
 import jakarta.ws.rs.core.Response;
 
 import java.io.IOException;
@@ -62,12 +63,13 @@ public class LoggingController {
             {
                 try {
                     SQLiteManager manager = SQLiteManager.getInstance();
-                    manager.saveTokens(logResp.getAccessToken(), logResp.getRefreshToken());
+                    manager.saveTokens(loginTextField.getText(), logResp.getAccessToken(), logResp.getRefreshToken());
                     MyUsername.setMyUsername(loginTextField.getText());
                     loadWindow(event, "/chatapp/client/views/hello-view.fxml");
                 }
                 catch(SQLException e)
                 {
+                    System.out.println(e.getMessage());
                     infoLabel.setText("Could not save tokens to the database.");
                     infoLabel.setTextFill(Color.RED);
                 }

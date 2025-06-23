@@ -29,19 +29,23 @@ public class SQLiteManager {
 
     private void initTables() throws SQLException {
         String createTokensTable = "CREATE TABLE IF NOT EXISTS tokens ("
-                + "id INTEGER PRIMARY KEY CHECK (id = 1),"
+                + "owner TEXT NOT NULL PRIMARY KEY,"
                 + "access_token TEXT NOT NULL,"
-                + "refresh_token TEXT NOT NULL" + ");";
+                + "refresh_token TEXT NOT NULL" + ")";
 
         String createFriendsTable = "CREATE TABLE IF NOT EXISTS friends ("
-                + "username TEXT PRIMARY KEY, "
-                + "publicKey TEXT NOT NULL"+ ");";
+                + "owner TEXT NOT NULL,"
+                + "username TEXT NOT NULL, "
+                + "publicKey TEXT NOT NULL, "
+                + "PRIMARY KEY(owner, username)"
+                + ")";
 
         String createLastMessagesTable = "CREATE TABLE IF NOT EXISTS lastmessages ("
                 + "id integer PRIMARY KEY AUTOINCREMENT,"
-                + "username TEXT NOT NULL,"
+                + "owner TEXT NOT NULL, "
+                + "username TEXT NOT NULL, "
                 + "message TEXT NOT NULL, "
-                + "mine BOOLEAN DEFAULT 0" + ");";
+                + "mine BOOLEAN DEFAULT 0" + ")";
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createTokensTable);
@@ -50,66 +54,76 @@ public class SQLiteManager {
         }
     }
 
-    public void saveTokens(String accessToken, String refreshToken) throws SQLException {
-        String upsert = "INSERT INTO tokens (id, access_token, refresh_token) VALUES (1, ?, ?) "
-                + "ON CONFLICT(id) DO UPDATE SET access_token = excluded.access_token, refresh_token = excluded.refresh_token;";
+    public void saveTokens(String owner, String accessToken, String refreshToken) throws SQLException {
+        String upsert = "INSERT INTO tokens (owner, access_token, refresh_token) VALUES (?, ?, ?) "
+                + "ON CONFLICT(owner) DO UPDATE SET access_token = excluded.access_token, refresh_token = excluded.refresh_token";
 
         try (PreparedStatement ps = connection.prepareStatement(upsert)) {
-            ps.setString(1, accessToken);
-            ps.setString(2, refreshToken);
+            ps.setString(1, owner);
+            ps.setString(2, accessToken);
+            ps.setString(3, refreshToken);
             ps.executeUpdate();
         }
     }
 
-    public Tokens loadTokens() throws SQLException {
-        String query = "SELECT access_token, refresh_token FROM tokens WHERE id = 1;";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            if (rs.next()) {
-                return new Tokens(rs.getString("access_token"), rs.getString("refresh_token"));
+    public Tokens loadTokens(String owner) throws SQLException {
+        String query = "SELECT access_token, refresh_token FROM tokens WHERE owner = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, owner);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Tokens(rs.getString("access_token"), rs.getString("refresh_token"));
+                }
             }
         }
         return null;
     }
-    public String getAccessToken() throws SQLException {
-        String query = "SELECT access_token FROM tokens WHERE id = 1;";
-        try (Statement stmt = connection.createStatement()) {
-            ResultSet rs = stmt.executeQuery(query);
-            if (rs.next()) {
-                return rs.getString("access_token");
+    public String getAccessToken(String owner) throws SQLException {
+        String query = "SELECT access_token FROM tokens WHERE owner = ?";
+        try(PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, owner);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("access_token");
+                }
             }
         }
         return null;
     }
-    public String getRefreshToken() throws SQLException {
-        String query = "SELECT refresh_token FROM tokens WHERE id = 1;";
-        try (Statement stmt = connection.createStatement()) {
-            ResultSet rs = stmt.executeQuery(query);
-            if (rs.next()) {
-                return rs.getString("refresh_token");
+    public String getRefreshToken(String owner) throws SQLException {
+        String query = "SELECT refresh_token FROM tokens WHERE owner = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, owner);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("refresh_token");
+                }
             }
         }
         return null;
     }
 
-    public void upsertFriend(String username, String publicKey) throws SQLException {
-        String upsert = "INSERT INTO friends (username, publicKey) VALUES (?, ?) "
-                + "ON CONFLICT(username) DO NOTHING;";
+    public void upsertFriend(String owner, String username, String publicKey) throws SQLException {
+        String upsert = "INSERT INTO friends (owner, username, publicKey) VALUES (?, ?, ?) "
+                + "ON CONFLICT(owner, username) DO NOTHING";
         try (PreparedStatement ps = connection.prepareStatement(upsert)) {
-            ps.setString(1, username);
-            ps.setString(2, publicKey);
+            ps.setString(1, owner);
+            ps.setString(2, username);
+            ps.setString(3, publicKey);
             ps.executeUpdate();
         }
     }
 
-    public List<Friend> loadFriends() throws SQLException {
+    public List<Friend> loadFriends(String owner) throws SQLException {
         List<Friend> friends = new ArrayList<>();
-        String query = "SELECT * FROM friends;";
+        String query = "SELECT * FROM friends WHERE owner = ?";
 
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                friends.add(new Friend(rs.getString("username"), rs.getString("publicKey")));
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, owner);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    friends.add(new Friend(rs.getString("username"), rs.getString("publicKey")));
+                }
             }
         }
         return friends;

@@ -36,7 +36,7 @@ public class FriendServiceClient {
         FriendAddRequest req = new FriendAddRequest(MyUsername.getMyUsername(), username);
         String accessToken;
         try {
-            accessToken = dbManager.getAccessToken();
+            accessToken = dbManager.getAccessToken(MyUsername.getMyUsername());
         } catch(SQLException e)
         {
             System.out.println("SQLException: " + e.getMessage());
@@ -66,7 +66,7 @@ public class FriendServiceClient {
     public String getFriendshipStatus(String username)
     {
         try {
-            String accessToken = dbManager.getAccessToken();
+            String accessToken = dbManager.getAccessToken(MyUsername.getMyUsername());
             Response response = client
                     .target(baseUrl+"/"+username+"/status/"+MyUsername.getMyUsername())
                     .request(MediaType.APPLICATION_JSON)
@@ -94,7 +94,7 @@ public class FriendServiceClient {
     public List<String> getFriendshipRequests()
     {
         try {
-            String accessToken = dbManager.getAccessToken();
+            String accessToken = dbManager.getAccessToken(MyUsername.getMyUsername());
             Response response = client
                     .target(baseUrl+"/requests/incoming/"+MyUsername.getMyUsername())
                     .request(MediaType.APPLICATION_JSON)
@@ -122,7 +122,7 @@ public class FriendServiceClient {
     public boolean respondToFriendRequest(String username, boolean accept)
     {
         try {
-            String accessToken = dbManager.getAccessToken();
+            String accessToken = dbManager.getAccessToken(MyUsername.getMyUsername());
             FriendRequestResponse res = new FriendRequestResponse(MyUsername.getMyUsername(), username, accept);
             Response response = client
                     .target(baseUrl+"/requests/respond")
@@ -151,7 +151,7 @@ public class FriendServiceClient {
     public List<Friend> getFriends()
     {
         try {
-            String accessToken = dbManager.getAccessToken();
+            String accessToken = dbManager.getAccessToken(MyUsername.getMyUsername());
             Response response = client
                     .target(baseUrl+"/"+MyUsername.getMyUsername()+"/list")
                     .request(MediaType.APPLICATION_JSON)
@@ -163,7 +163,7 @@ public class FriendServiceClient {
                 List<Friend> friends = response.readEntity(new GenericType<List<Friend>>() {});
                 for (Friend friend: friends)
                 {
-                    dbManager.upsertFriend(friend.getUsername(), friend.getPublicKey());
+                    dbManager.upsertFriend(MyUsername.getMyUsername(), friend.getUsername(), friend.getPublicKey());
                 }
                 return friends;
             }

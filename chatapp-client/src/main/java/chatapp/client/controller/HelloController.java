@@ -20,6 +20,7 @@ import chatapp.client.service.FriendServiceClient;
 import chatapp.client.storage.SQLiteManager;
 import chatapp.client.dto.LogoutRequest;
 import chatapp.client.dto.LogoutResponse;
+import chatapp.client.model.MyUsername;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public class HelloController {
             String baseUrl = "http://localhost:8081/api/users";
             UserServiceClient userClient = new UserServiceClient(httpService, baseUrl);
             SQLiteManager dbManager = SQLiteManager.getInstance();
-            LogoutRequest logReq = new LogoutRequest(dbManager.getRefreshToken());
+            LogoutRequest logReq = new LogoutRequest(dbManager.getRefreshToken(MyUsername.getMyUsername()));
             ApiResponse<LogoutResponse> resp = userClient.logout(logReq);
             LogoutResponse logResp = resp.getBody();
             if (logResp.getMessage().equals("You were properly logout.")) {
