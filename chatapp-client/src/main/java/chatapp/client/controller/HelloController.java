@@ -38,6 +38,7 @@ public class HelloController {
     private int maxMessages = 5;
     private List<String> messages = new ArrayList<>();
     private List<Friend> friends = new ArrayList<>();
+    private String currentFriendName;
 
     @FXML private TextField messageTextField;
     @FXML Label messagesLabel;
@@ -101,7 +102,7 @@ public class HelloController {
             messagesLabel.setText("");
             startOfConversation = false;
         }
-        String message = messageTextField.getText();
+        String message = "You: " + messageTextField.getText();
         messages.add(message);
 
         String msgLabelText = "";
@@ -113,4 +114,9 @@ public class HelloController {
     }
     @FXML
     protected void onTextFieldClick() {  }
+
+    @FXML
+    protected void changeFriend() {
+        currentFriendName = (String)friendComboBox.getValue();
+    }
 }

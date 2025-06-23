@@ -22,7 +22,7 @@
         <Button text="Add friends" onAction="#addFriends"/>
         <Button text="Logout" onAction="#logout"/>
     </HBox>
-    <ComboBox fx:id="friendComboBox" prefWidth="200.0"/>
+    <ComboBox fx:id="friendComboBox" prefWidth="200.0" onAction="#changeFriend"/>
     <Label fx:id="messagesLabel" alignment="TOP_CENTER" text="To jest początek rozmowy!"/>
 
     <HBox alignment="BOTTOM_CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
