@@ -77,21 +77,27 @@ public class friendRequestsController
     }
 
     private void loadPeople() {
-        for (String username : people) {
-            HBox h = new HBox();
-            h.setSpacing(20);
-            h.getChildren().add(new Label(username));
-            Button accept = new Button("Accept");
-            Button reject = new Button("Reject");
-            accept.setId(username);
-            accept.setUserData("accept");
-            reject.setId(username);
-            reject.setUserData("reject");
-            accept.setOnAction(invitationRequestHandler);
-            reject.setOnAction(invitationRequestHandler);
-            h.getChildren().addAll(accept, reject);
-            personList.getChildren().add(h);
+        try {
+            for (String username : people) {
+                HBox h = new HBox();
+                h.setSpacing(20);
+                h.getChildren().add(new Label(username));
+                Button accept = new Button("Accept");
+                Button reject = new Button("Reject");
+                accept.setId(username);
+                accept.setUserData("accept");
+                reject.setId(username);
+                reject.setUserData("reject");
+                accept.setOnAction(invitationRequestHandler);
+                reject.setOnAction(invitationRequestHandler);
+                h.getChildren().addAll(accept, reject);
+                personList.getChildren().add(h);
+            }
         }
+        catch (Exception e) {
+
+        }
+
     }
 
     @FXML

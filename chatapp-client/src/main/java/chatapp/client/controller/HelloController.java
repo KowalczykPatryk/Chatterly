@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 
 import chatapp.client.HelloApplication;
@@ -81,9 +82,14 @@ public class HelloController {
 
     @FXML
     public void initialize() {
-        friends = friendServiceClient.getFriends();
-        for(Friend f : friends) {
-            friendComboBox.getItems().add(f.getUsername());
+        try {
+            friends = friendServiceClient.getFriends();
+            for(Friend f : friends) {
+                friendComboBox.getItems().add(f.getUsername());
+            }
+        }
+        catch (Exception e) {
+
         }
     }
 
