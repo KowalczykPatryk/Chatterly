@@ -1,40 +1,37 @@
 package chatapp.server.model;
 
-import java.time.Instant;
-
 
 public class Message
 {
-    private long id;
-    private int fromUser;
-    private int toUser;
+    private String fromUser;
+    private String toUser;
     private byte[] iv;
     private byte[] encryptedKey;
     private byte[] ciphertext;
-    private Instant createdAt;
-    private boolean delivered;
 
-    public long getId() {
-        return id;
+    public Message() {}
+
+    public Message(String fromUser, String toUser, byte[] iv, byte[] encryptedKey, byte[] ciphertext) {
+        this.fromUser = fromUser;
+        this.toUser = toUser;
+        this.iv = iv;
+        this.encryptedKey = encryptedKey;
+        this.ciphertext = ciphertext;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public int getFromUser() {
+    public String getFromUser() {
         return fromUser;
     }
 
-    public void setFromUser(int fromUser) {
+    public void setFromUser(String fromUser) {
         this.fromUser = fromUser;
     }
 
-    public int getToUser() {
+    public String getToUser() {
         return toUser;
     }
 
-    public void setToUser(int toUser) {
+    public void setToUser(String toUser) {
         this.toUser = toUser;
     }
 
@@ -60,21 +57,5 @@ public class Message
 
     public void setCiphertext(byte[] ciphertext) {
         this.ciphertext = ciphertext;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public boolean isDelivered() {
-        return delivered;
-    }
-
-    public void setDelivered(boolean delivered) {
-        this.delivered = delivered;
     }
 }

@@ -1,19 +1,23 @@
 package chatapp.client.controller;
 
 import chatapp.client.model.Friend;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.ComboBox;
 import javafx.stage.Stage;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.net.URI;
+import java.util.stream.Collectors;
 
 import chatapp.client.HelloApplication;
 import chatapp.client.service.FriendServiceClient;
@@ -21,42 +25,100 @@ import chatapp.client.storage.SQLiteManager;
 import chatapp.client.dto.LogoutRequest;
 import chatapp.client.dto.LogoutResponse;
 import chatapp.client.model.MyUsername;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import chatapp.client.http.HttpService;
 import chatapp.client.service.UserServiceClient;
-import chatapp.client.dto.LoginRequest;
-import chatapp.client.dto.LoginResponse;
 import chatapp.client.model.ApiResponse;
-import jakarta.ws.rs.core.Response;
+import chatapp.client.websocket.ChatClient;
 
 public class HelloController {
-    private FriendServiceClient friendServiceClient = new FriendServiceClient();
-    private boolean startOfConversation = true;
-    private int maxMessages = 4;
-    private List<String> messages = new ArrayList<>();
-    private List<Friend> friends = new ArrayList<>();
+    private static final int MAX_MESSAGES = 4;
+
+    private final FriendServiceClient friendServiceClient = new FriendServiceClient();
+    private ChatClient client;
+    private String currentFriend;
+
+    private final ObservableList<String> messageList = FXCollections.observableArrayList();
+    private final ObservableList<String> friendList  = FXCollections.observableArrayList();
 
     @FXML private TextField messageTextField;
-    @FXML Label messagesLabel;
-    @FXML ComboBox friendComboBox;
+    @FXML private ListView<String> messagesListView;
+    @FXML private ComboBox<String>  friendComboBox;
 
+    @FXML
+    public void initialize() {
+        messagesListView.setItems(messageList);
+        refreshFriendsList();
+        friendComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldF, newF) -> {
+            if (newF != null && !newF.equals(currentFriend)) {
+                switchConversationTo(newF);
+            }
+        });
+    }
 
-    private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
-        Scene scene = new Scene(fxmlLoader.load(), width, height);
-        scene.getStylesheets().add("/chatapp/client/styles/style.css");
-        Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
-        stage.setTitle("Chatterly");
-        stage.setScene(scene);
-        stage.show();
+    private void refreshFriendsList() {
+        try {
+            friendList.setAll(
+                    friendServiceClient.getFriends()
+                            .stream()
+                            .map(Friend::getUsername)
+                            .collect(Collectors.toList())
+            );
+            friendComboBox.setItems(friendList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void switchConversationTo(String friend) {
+        if (client != null) {
+            try {
+                client.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        currentFriend = friend;
+        messageList.clear();
+        messagesListView.scrollTo(0);
+
+        try {
+            client = new ChatClient(plainText -> {
+                Platform.runLater(() -> {
+                    if (messageList.size() == MAX_MESSAGES) {
+                        messageList.remove(0);
+                    }
+                    messageList.add(plainText);
+                    messagesListView.scrollTo(messageList.size() - 1);
+                });
+            });
+            client.openChatWebSocket(friend);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
-    protected void addFriends(ActionEvent event) throws IOException
-    {
+    protected void sendMessage() {
+        String text = messageTextField.getText();
+        if (text == null || text.isBlank() || client == null) {
+            return;
+        }
+        try {
+            client.sendMessage(text);
+            if (messageList.size() == MAX_MESSAGES) {
+                messageList.remove(0);
+            }
+            messageList.add(text);
+            messagesListView.scrollTo(messageList.size() - 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            messageTextField.clear();
+        }
+    }
+
+    @FXML
+    protected void addFriends(ActionEvent event) throws IOException {
         loadWindow(event, "/chatapp/client/views/addFriends.fxml", 400, 300);
     }
 
@@ -64,9 +126,9 @@ public class HelloController {
     protected void friendRequests(ActionEvent event) throws IOException {
         loadWindow(event, "/chatapp/client/views/friendRequests.fxml", 400, 300);
     }
+
     @FXML
-    protected void logout(ActionEvent event) throws IOException
-    {
+    protected void logout(ActionEvent event) throws IOException {
         try {
             HttpService httpService = new HttpService();
             String baseUrl = "http://localhost:8081/api/users";
@@ -75,42 +137,36 @@ public class HelloController {
             LogoutRequest logReq = new LogoutRequest(dbManager.getRefreshToken(MyUsername.getMyUsername()));
             ApiResponse<LogoutResponse> resp = userClient.logout(logReq);
             LogoutResponse logResp = resp.getBody();
-            if (logResp.getMessage().equals("You were properly logout.")) {
+            if ("You were properly logout.".equals(logResp.getMessage())) {
                 loadWindow(event, "/chatapp/client/views/logging.fxml", 400, 300);
             }
-        } catch(SQLException e) {}
-    }
-
-    @FXML
-    public void initialize() {
-        try {
-            friends = friendServiceClient.getFriends();
-            for(Friend f : friends) {
-                friendComboBox.getItems().add(f.getUsername());
-            }
-        }
-        catch (Exception e) {
-
+        } catch(SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private int max(int a, int b) { return (a > b) ? a : b; }
-    @FXML
-    protected void sendMessage() {
-        if(startOfConversation) {
-            messagesLabel.setText("");
-            startOfConversation = false;
-        }
-        String message = messageTextField.getText();
-        messages.add(message);
-
-        String msgLabelText = "";
-        for(int i = max(messages.size() - maxMessages, 0); i < messages.size(); i++) {
-            msgLabelText += messages.get(i) + "\n";
-        }
-        messagesLabel.setText(msgLabelText);
-        messageTextField.setText("");
+    private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
+        FXMLLoader loader = new FXMLLoader(HelloApplication.class.getResource(window));
+        Scene scene = new Scene(loader.load(), width, height);
+        scene.getStylesheets().add("/chatapp/client/styles/style.css");
+        Stage stage = (Stage)((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Chatterly");
+        stage.setScene(scene);
+        stage.show();
     }
     @FXML
-    protected void onTextFieldClick() {  }
+    protected void onTextFieldClick(javafx.scene.input.MouseEvent event) {
+        // can be used to clear placeholder or prepare UI
+    }
+
+    @FXML
+    protected void handleKeyPress(javafx.scene.input.KeyEvent event) {
+        switch (event.getCode()) {
+            case ENTER:
+                sendMessage();
+                break;
+            default:
+                break;
+        }
+    }
 }

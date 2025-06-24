@@ -114,6 +114,20 @@ public class SQLiteManager {
         }
     }
 
+    public String getPublicKey(String owner, String username) throws SQLException {
+        String query = "SELECT publicKey FROM friends WHERE owner = ? AND username = ?";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, owner);
+            ps.setString(2, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("publicKey");
+                }
+            }
+        }
+        return null;
+    }
+
     public List<Friend> loadFriends(String owner) throws SQLException {
         List<Friend> friends = new ArrayList<>();
         String query = "SELECT * FROM friends WHERE owner = ?";

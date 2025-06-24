@@ -5,6 +5,9 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 
+import jakarta.websocket.server.ServerContainer;
+import jakarta.websocket.DeploymentException;
+
 import chatapp.server.config.DependencyBinder;
 import chatapp.server.auth.JwtUtil;
 
@@ -13,6 +16,9 @@ import java.io.IOException;
 import java.net.URI;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+
+import org.glassfish.tyrus.server.Server;
+import chatapp.server.websocket.ChatWebSocketEndpoint;
 
 public class Main {
     private static final String port = System.getenv("PORT");
@@ -41,13 +47,13 @@ public class Main {
         // Uruchamiamy Grizzly (Jersey) na wskazanym URI
         HttpServer server = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, config);
 
-        System.out.println("Serwer REST wystartował: " + BASE_URI);
-        System.out.println("Naciśnij CTRL+C, aby zatrzymać.");
+        Server wsServer = new Server("0.0.0.0", 8082, "/api", null, ChatWebSocketEndpoint.class);
+        try {
+            wsServer.start();
+        } catch(DeploymentException  e) {}
 
-        // Hook do wyłączenia serwera przy zamknięciu
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            server.shutdownNow();
-        }));
+        System.out.println("REST + WS running at " + BASE_URI);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {server.shutdownNow(); wsServer.stop();}));
 
         // Utrzymujemy wątek główny przy życiu
         try {
