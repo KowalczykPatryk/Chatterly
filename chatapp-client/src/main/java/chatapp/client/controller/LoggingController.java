@@ -33,6 +33,7 @@ public class LoggingController {
 
     private static final String BASE = "http://localhost:8081/api/users";
 
+    //loading another window of an app
     private void loadWindow(ActionEvent event, String window) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(fxmlLoader.load(), 400, 300);
@@ -42,6 +43,8 @@ public class LoggingController {
         stage.setScene(scene);
         stage.show();
     }
+
+    //logging in
     @FXML
     protected void logIn(ActionEvent event) throws IOException {
         if(loginTextField.getText().isEmpty()) {
@@ -82,6 +85,7 @@ public class LoggingController {
         }
     }
 
+    //load the window for registration
     @FXML
     protected void register(ActionEvent event) throws IOException {
         loadWindow(event, "/chatapp/client/views/register.fxml");

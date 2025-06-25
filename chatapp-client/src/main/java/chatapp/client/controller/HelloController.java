@@ -55,6 +55,7 @@ public class HelloController {
         });
     }
 
+    //refreshing the list of friends
     private void refreshFriendsList() {
         try {
             friendList.setAll(
@@ -69,6 +70,7 @@ public class HelloController {
         }
     }
 
+    //changing conversation partner
     private void switchConversationTo(String friend) {
         if (client != null) {
             try {
@@ -97,6 +99,7 @@ public class HelloController {
         }
     }
 
+    //sending a message
     @FXML
     protected void sendMessage() {
         String text = messageTextField.getText();
@@ -117,16 +120,19 @@ public class HelloController {
         }
     }
 
+    //adding new friend
     @FXML
     protected void addFriends(ActionEvent event) throws IOException {
         loadWindow(event, "/chatapp/client/views/addFriends.fxml", 400, 300);
     }
 
+    //opening a window with friend requests
     @FXML
     protected void friendRequests(ActionEvent event) throws IOException {
         loadWindow(event, "/chatapp/client/views/friendRequests.fxml", 400, 300);
     }
 
+    //logging out
     @FXML
     protected void logout(ActionEvent event) throws IOException {
         try {
@@ -145,6 +151,7 @@ public class HelloController {
         }
     }
 
+    //loading another window of an app
     private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
         FXMLLoader loader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(loader.load(), width, height);
@@ -154,6 +161,8 @@ public class HelloController {
         stage.setScene(scene);
         stage.show();
     }
+
+
     @FXML
     protected void onTextFieldClick(javafx.scene.input.MouseEvent event) {
         // can be used to clear placeholder or prepare UI

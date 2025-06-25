@@ -46,6 +46,7 @@ public class AddFriendsController
     private List<String> usernames = new ArrayList<>();
     private FriendServiceClient friendServiceClient = new FriendServiceClient();
 
+    //loading another window of an app
     private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(fxmlLoader.load(), width, height);
@@ -57,12 +58,14 @@ public class AddFriendsController
 
     }
 
+    //invite a new friend
     private final EventHandler<ActionEvent> inviteHandler = event -> {
         Button btn = (Button) event.getSource();
         String userToInvite = btn.getId();
         sendInvitationTo(userToInvite, btn);
     };
 
+    //load the list of available people
     private void loadUsernames() {
         personList.getChildren().clear();
         for (String username : usernames) {
@@ -96,6 +99,8 @@ public class AddFriendsController
             personList.getChildren().add(h);
         }
     }
+
+    //send friend invitation
     private void sendInvitationTo(String username, Button btn) {
         if (friendServiceClient.sendInvitationTo(username)) {
             btn.setDisable(true);
@@ -108,11 +113,15 @@ public class AddFriendsController
         loadUsernames();
     }
 
+
+    //back to main window
     @FXML
     protected void goBack(ActionEvent event) throws IOException
     {
         loadWindow(event, "/chatapp/client/views/hello-view.fxml", 400, 300);
     }
+
+    //search for available people
     @FXML
     protected void search(ActionEvent event) throws IOException
     {

@@ -30,6 +30,7 @@ public class friendRequestsController
     private List<String> people = new ArrayList<>();
     private FriendServiceClient friendServiceClient = new FriendServiceClient();
 
+    //loading another window of an app
     private void loadWindow(ActionEvent event, String window, double width, double height) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(fxmlLoader.load(), width, height);
@@ -40,6 +41,7 @@ public class friendRequestsController
         stage.show();
 
     }
+
 
     private final EventHandler<ActionEvent> invitationRequestHandler = event -> {
         Button btn = (Button) event.getSource();
@@ -65,17 +67,21 @@ public class friendRequestsController
             handleReject(username, btn);
         }
     };
+    //accepting friend invitation
     private void handleAccept(String username, Button accept) {
         if (friendServiceClient.respondToFriendRequest(username, true)) {
             accept.setText("Accepted");
         }
     }
+
+    //reject friend invitation
     private void handleReject(String username, Button reject) {
         if (friendServiceClient.respondToFriendRequest(username, false)) {
             reject.setText("Rejected");
         }
     }
 
+    //loading list of available people
     private void loadPeople() {
         try {
             for (String username : people) {
@@ -106,6 +112,7 @@ public class friendRequestsController
         loadPeople();
     }
 
+    //back to main window
     @FXML
     protected void goBack(ActionEvent event) throws IOException
     {

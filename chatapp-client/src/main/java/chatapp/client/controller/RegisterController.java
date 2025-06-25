@@ -29,6 +29,7 @@ public class RegisterController {
     @FXML private TextField passwordTextField;
     @FXML private Label infoLabel;
 
+    //loading another window of an app
     private void loadWindow(ActionEvent event, String window) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource(window));
         Scene scene = new Scene(fxmlLoader.load(), 400, 240);
@@ -38,6 +39,8 @@ public class RegisterController {
         stage.setScene(scene);
         stage.show();
     }
+
+    //creating a new user account
     @FXML
     protected void createAccount(ActionEvent event) throws IOException {
         if(usernameTextField.getText().isEmpty() || passwordTextField.getText().isEmpty()) {
