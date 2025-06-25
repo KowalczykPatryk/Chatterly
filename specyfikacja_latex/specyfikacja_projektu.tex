@@ -11,12 +11,13 @@
 
 \title{Specyfikacja Projektu Zaliczenowego (Programowanie w Języku Java)}
 \author{Radosław Ciepał \and Patryk Kowalczyk}
-\textbf{https://github.com/KowalczykPatryk/Chatterly}
 \date{\today}
 
 \begin{document}
 
 \maketitle
+
+\textbf{Repozytorium:} \href{https://github.com/KowalczykPatryk/Chatterly}{https://github.com/KowalczykPatryk/Chatterly}
 
 \section*{1. Tytuł Projektu}
 
@@ -252,6 +253,8 @@ cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpoint
 
 \section*{7. Tablice baz danych:}
 
+\textbf{Serwer}
+
 \textbf{users} (przechowuje dane o kontach użytkowników)
 \begin{itemize}
     \item id SERIAL PRIMARY KEY
@@ -300,6 +303,32 @@ cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpoint
     \item lastSeen TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 \end{itemize}
 
+\textbf{Klient}
+
+\textbf{tokens} (zapisuje aktualne tokeny użytkownika)
+\begin{itemize}
+    \item owner TEXT NOT NULL PRIMARY KEY
+    \item accessToken TEXT NOT NULL
+    \item refreshToken TEXT NOT NULL
+\end{itemize}
+
+\textbf{friends} (zapisuje znajomych użytkownika)
+\begin{itemize}
+    \item owner TEXT NOT NULL
+    \item username TEXT NOT NULL
+    \item publicKey TEXT NOT NULL
+    \item PRIMARY KEY(owner, username)
+\end{itemize}
+
+\textbf{lastMessages} (zapisuje kilka ostatnich wiadomości lokalnie)
+\begin{itemize}
+    \item id integer PRIMARY KEY AUTOINCREMENT
+    \item owner TEXT NOT NULL
+    \item username TEXT NOT NULL
+    \item message TEXT NOT NULL
+    \item mine BOOLEAN DEFAULT 0
+\end{itemize}
+
 
 
 \section*{8. Struktura Klas}
@@ -311,30 +340,54 @@ cyklem życia połączenia, heartbeat, konfiguracją zabezpieczeń oraz endpoint
 \subsection*{Model}
 \begin{itemize}
     \item \texttt{User} – username, password, publicKey.
+    \item \texttt{Friend} – username, publicKey.
+    \item \texttt{Tokens} – accessToken, refreshToken.
+    \item \texttt{ApiResponse} – status, body.
+    \item \texttt{MyUsername} – myUsername.
     \item \texttt{Message} – fromUser, toUser, iv, encryptedKey, ciphertext.
 \end{itemize}
 
-\subsection*{Serwisy}
+\subsection*{Serwisy clienta i serwera}
 \begin{itemize}
-    \item \texttt{UserService} – rejestracja, logowanie, validateAccessToken, refreshTokens.
+    \item \texttt{FriendServiceClient} – sendInvitationTo, getFriendshipStatus, getFriendshipRequest, respondToFriendRequest, getFriends.
+    \item \texttt{UserServiceClient} – register, login, getUsernames, refresh.
+    \item \texttt{UserService} – rejestracja, logowanie, wylogowanie, getUsernames, validateAccessToken, refreshTokens.
     \item \texttt{MessageService} – logika zarządzania wiadomościami.
-    \item \item \texttt{FriendService} – logika zarządzania wiadomościami.
+    \item \texttt{FriendService} – logika zarządzania znajomymi.
     \item \texttt{NotificationService} – generowanie powiadomień nowych wiadomości.
-    \item \texttt{AuthService} – JWT, walidacja, bezpieczeństwo.
 \end{itemize}
 
-\subsection*{Kontrolery}
+\subsection*{Kontrolery serwera}
 \begin{itemize}
     \item \texttt{UserController} – REST API użytkownika.
-    \item \item \texttt{FriendController} – REST API zarządzania znajomymi.
+    \item \texttt{FriendController} – REST API zarządzania znajomymi.
     \item \texttt{MessageController} – REST API pobierania wiadomości.
+\end{itemize}
+
+\subsection*{Kontrolery clienta}
+\begin{itemize}
+    \item \texttt{AddFriendsController} – zarządza widokiem dodawania znajomych i wyszukiwania osób.
+    \item \texttt{friendRequestsController} – zarządza widokiem akceptowaniem i odrzucaniem zaproszeń do znajomych.
+    \item \texttt{HelloController} – zarządza głównym widokiem wysyłania wiadomości.
+    \item \texttt{LoggingController} – zarządza widokiem logowania.
+    \item \texttt{RegisterController} – zarządza widokiem rejestracji.
 \end{itemize}
 
 \subsection*{Dodatkowe komponenty}
 \begin{itemize}
-    \item \texttt{WebSocketHandler} – wymiana wiadomości w czasie rzyczywistym.
+    \item \texttt{ChatWebSocketEndpoint} – wymiana wiadomości w czasie rzyczywistym i zapisywanie w bazie danych serwera.
     \item \texttt{DTO} – obiekty wymiany danych (Data Transfer Object).
     \item \texttt{DAO} – zapewnia abstrakcyjny interface do bazy danych (Data Access Object).
+    \item \texttt{MessageDecoder, MessageEncoder} – zapewnia generowanie obiektów z JSON i na odwrót.
+    \item \texttt{BcryptPasswordHasher} – tworzy hash hasła do zapisania na serwerze oraz weryfikuje hasła.
+    \item \texttt{ChatSessionRegistry} – hashMap do przechowywania otwartych przez klientów sesji.
+    \item \texttt{Database} – zawiera informacje do logowania do serwerowej bazy danych i połączenia.
+    \item \texttt{JwtUtil} – zarządza tokenami na serwerze.
+    \item \texttt{DependencyBinder} – podpowiada serwerowi jaką insatncję należy wstrzyknąć.
+    \item \texttt{CryptoUtil} – pozwala szyfrować i rozszyfrowywać wiadomości.
+    \item \texttt{KeyStoreManager} – zapisuje lokalnie klucze symetryczne dostępne pod nazwą użytkownika.
+    \item \texttt{HttpService} – jednolici wysyłanie zapytań post.
+    \item \texttt{ChatClient} – otwiera połączenie websocket, wysyła i przyjmuje wiadomości po otwarciu.
 \end{itemize}
 
 \section*{9. API}
@@ -347,7 +400,13 @@ POST /api/users/register
 POST /api/users/login
 POST /api/users/refreshToken
 POST /api/users/logout
-GET /api/messages
+POST /api/users/getUsernames
+POST /api/friends/requests
+GET /api/friends/requests/incoming/{username}
+POST /api/friends/requests/respond
+DELETE /api/friends/{usernameFrom}/with/{usernameTo}
+GET /api/friends/{username}/list
+GET /api/friends/{usernameFrom}/status/{usernameFriend}
 \end{verbatim}
 
 \section*{10. Interfejs Użytkownika}
@@ -364,6 +423,7 @@ GET /api/messages
         \item  Wyszukiwanie nowych użytkowników
         \item  Widok ostatnich wiadomości
         \item  Pole wpisywania i wysyłania wiadomości
+        \item  Pole odpowiedzi na zapytanie o przyjażń
     \end{itemize}
 \end{itemize}
 
