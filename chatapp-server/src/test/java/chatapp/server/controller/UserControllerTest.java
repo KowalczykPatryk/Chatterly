@@ -2,7 +2,7 @@ package chatapp.server.controller;
 
 import chatapp.server.dto.LoginRequest;
 import chatapp.server.dto.LoginResponse;
-import chatapp.server.dto.Tokens;
+import chatapp.server.model.Tokens;
 import chatapp.server.model.User;
 import chatapp.server.config.DependencyBinder;
 import chatapp.server.service.UserService;
